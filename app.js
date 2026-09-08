@@ -470,6 +470,9 @@ function icon(type) {
     back: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12H5"></path><path d="m11 6-6 6 6 6"></path></svg>`,
     lock: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10.5" rx="2.4"></rect><path d="M8 10.5V7.6a4 4 0 0 1 8 0v2.9"></path></svg>`,
     check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m4.5 12.5 5 5 10-11"></path></svg>`,
+    form: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3.4H6.8a2 2 0 0 0-2 2v13.2a2 2 0 0 0 2 2h10.4a2 2 0 0 0 2-2V5.4a2 2 0 0 0-2-2H15"></path><rect x="9" y="2" width="6" height="3.4" rx="1.3"></rect><path d="M8.6 11h5.2"></path><path d="M8.6 15h6.8"></path></svg>`,
+    stethoscope: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5.4 3v4.6a4.2 4.2 0 0 0 8.4 0V3"></path><path d="M5.4 3H3.8"></path><path d="M13.8 3h1.6"></path><path d="M9.6 11.8v2.4a4.6 4.6 0 0 0 9.2 0v-1.1"></path><circle cx="18.8" cy="10.9" r="2.1"></circle></svg>`,
+    box: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.6 3.4 7v10l8.6 4.4L20.6 17V7z"></path><path d="M3.4 7 12 11.4 20.6 7"></path><path d="M12 11.4v10"></path></svg>`,
   };
   return icons[type];
 }
@@ -534,22 +537,23 @@ function renderSelect() {
 function renderIntro() {
   const protocolo = getProtocol();
 
-  const specs = [...(protocolo.specs || []), ["Avaliação", "Cerca de 30 perguntas"]];
-
-  /* Prazos reais (avaliação médica, envio) podem ser adicionados como
-     terceiro item de cada etapa: ["Título", "Descrição", "ATÉ 24H"]. */
+  /* Prazos reais (avaliação médica, envio) entram como quarto item de
+     cada etapa: [icone, "Título", "Descrição", "ATÉ 24H"]. */
   const etapas = [
     [
+      "form",
       "Você responde a avaliação",
       "Queixas, histórico médico, medicamentos em uso e hábitos. Tudo por escrito, sem consulta por vídeo.",
       "",
     ],
     [
+      "stethoscope",
       "Um médico analisa o seu caso",
       "Ele confirma se há indicação e define o princípio ativo, a via de administração e a dose inicial.",
       "",
     ],
     [
+      "box",
       "O protocolo é liberado",
       "Com a indicação médica, você finaliza o pedido na plataforma parceira e recebe em casa.",
       "",
@@ -570,29 +574,14 @@ function renderIntro() {
         <h1 class="ci__title">${protocolo.nome}</h1>
         ${protocolo.resumo ? `<p class="ci__desc">${protocolo.resumo}</p>` : ""}
 
-        ${
-          specs.length
-            ? `<dl class="ci__specs">
-          ${specs
-            .map(
-              ([termo, valor]) => `
-            <div class="ci__spec">
-              <dt>${termo}</dt>
-              <dd>${valor}</dd>
-            </div>`
-            )
-            .join("")}
-        </dl>`
-            : ""
-        }
-
         <ol class="ci__track">
           ${etapas
             .map(
-              ([titulo, texto, quando]) => `
+              ([nomeIcone, titulo, texto, quando]) => `
             <li class="ci__step">
-              <span class="ci__num" aria-hidden="true"></span>
+              <span class="ci__icon" aria-hidden="true">${icon(nomeIcone)}</span>
               <div>
+                <span class="ci__etapa"></span>
                 <h3>${titulo}</h3>
                 <p>${texto}</p>
                 ${quando ? `<span class="ci__when">${quando}</span>` : ""}

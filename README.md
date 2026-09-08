@@ -1,8 +1,8 @@
 # Consultório — the men's & the ladies
 
 Reconstrução estática do consultório digital. HTML, CSS e JavaScript puro,
-sem build e sem dependências externas: as fontes Ezra vão embutidas em
-base64 no CSS e as respostas ficam em `localStorage`.
+sem build: a Ezra vai embutida em base64 no CSS, a Montserrat vem do Google
+Fonts e as respostas ficam em `localStorage`.
 
 ## Rotas
 
@@ -61,8 +61,19 @@ Paleta sage da marca, com um tom mais escuro para texto e botões:
 `#8c9c81` com texto branco dá 2.92:1 e não passa AA, por isso não é usado
 como fundo de botão.
 
-Tipografia: Ezra (4 pesos) para títulos e corpo, mono do sistema para
-rótulos e dados clínicos.
+Tipografia:
+
+- **Ezra** — só em título. Aplicada em 7 seletores: `.wordmark`, `.ps__title`,
+  `.ps__card-name`, `.ci__title`, `.ci__step h3`, `.cq__question` e `.done h1`.
+  Ficaram embutidos apenas os pesos 600 e 800, os únicos alcançados por esses
+  seletores; os pesos 400 e 700 foram removidos e cortaram 88 KB do CSS.
+- **Montserrat** — todo o resto (corpo, opções, campos, botões), via Google
+  Fonts com `Arial, Helvetica` no fallback. É a única dependência externa do
+  projeto; se o Google Fonts não responder, a página cai em Arial.
+- **Mono do sistema** — rótulos curtos, selos e contadores. Não usa arquivo.
+
+Para reintroduzir um peso da Ezra, recupere o `@font-face` do histórico do
+git (commit anterior à poda) ou gere do `.otf` original.
 
 ## Rodar localmente
 
