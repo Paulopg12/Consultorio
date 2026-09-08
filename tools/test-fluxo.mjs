@@ -190,6 +190,16 @@ console.log("\n7. envio de fotos");
   );
   check("Continuar liberado (foto e opcional)", doc.querySelector("[data-next]").getAttribute("aria-disabled") === "false");
   check("status inicial", doc.querySelector(".ph__status").textContent.includes("Não enviado"));
+  const silhuetas = [...doc.querySelectorAll(".ph__silhueta img")];
+  check("cada card mostra a silhueta", silhuetas.length === 2);
+  check(
+    "silhuetas vem de assets e têm alt",
+    silhuetas.every((i) => i.getAttribute("src").startsWith("/assets/corpo-") && (i.getAttribute("alt") || "").length > 10)
+  );
+  check(
+    "frente e lado são arquivos diferentes",
+    new Set(silhuetas.map((i) => i.getAttribute("src"))).size === 2
+  );
   check("mostra o limite", doc.querySelector(".ph__hint").textContent.includes("5 MB"));
 
   const comFoto = boot(rotaDe("fotos_corpo"), {

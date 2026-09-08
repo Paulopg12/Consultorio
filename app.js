@@ -1025,25 +1025,15 @@ function formatBytes(bytes) {
   return `${Math.round(bytes / 1024)} KB`;
 }
 
+/* Silhuetas fornecidas pela marca, em PNG com fundo transparente. */
+const SILHUETAS = {
+  frente: { arquivo: "corpo-frente.png", alt: "Contorno de um corpo visto de frente" },
+  lado: { arquivo: "corpo-lado.png", alt: "Contorno de um corpo visto de lado" },
+};
+
 function silhueta(tipo) {
-  if (tipo === "lado") {
-    return `<svg viewBox="0 0 48 96" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <circle cx="26" cy="12" r="7"></circle>
-      <path d="M26 19c-5 2-8 6-8 11v10c0 3 1 5 2 8l1 12"></path>
-      <path d="M18 30c-3 1-4 4-4 7v9"></path>
-      <path d="M21 60l-1 14 1 12"></path>
-      <path d="M26 60l2 14-1 12"></path>
-    </svg>`;
-  }
-  return `<svg viewBox="0 0 48 96" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-    <circle cx="24" cy="12" r="7"></circle>
-    <path d="M24 19c-6 0-11 3-12 8l-2 13"></path>
-    <path d="M24 19c6 0 11 3 12 8l2 13"></path>
-    <path d="M12 27v20h24V27"></path>
-    <path d="M16 47l-1 27"></path>
-    <path d="M32 47l1 27"></path>
-    <path d="M24 47v27"></path>
-  </svg>`;
+  const img = SILHUETAS[tipo] || SILHUETAS.frente;
+  return `<img src="/assets/${img.arquivo}" alt="${img.alt}" width="887" height="1774" decoding="async">`;
 }
 
 function photoCard(slot) {

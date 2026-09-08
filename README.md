@@ -119,6 +119,14 @@ JPG e PNG até 5 MB e mostra pré-visualização, nome e tamanho.
 
 **As fotos são opcionais**: o Continuar nunca trava.
 
+Cada card mostra uma silhueta de referência — `assets/corpo-frente.png` e
+`assets/corpo-lado.png`, PNG com fundo transparente fornecidos pela marca.
+
+> **Peso a resolver.** Os dois PNG somam 890 KB em 887×1774 e são exibidos em
+> cerca de 60×96 px. É umas dez vezes mais dado do que a tela usa, e o
+> projeto não tem passo de build para otimizar imagem. Vale gerar versões de
+> ~200 px de largura e substituir.
+
 Os arquivos vão para o **IndexedDB** (`tl-consulta-fotos`), não para o
 `localStorage`: um JPEG de 3 MB em base64 passa de 4 MB e estouraria a cota
 de 5 MB do domínio inteiro, levando as respostas junto. O `localStorage`
