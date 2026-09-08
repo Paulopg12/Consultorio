@@ -662,7 +662,7 @@ function renderSelect() {
 
       <div class="ps__main">
         <p class="eyebrow">Escolha seu protocolo</p>
-        <h1 class="ps__title">O que você quer tratar?</h1>
+        <h1 class="ps__title">Seu Cuidado Começa Com Uma Conversa</h1>
         <p class="ps__lede">Um médico avalia suas respostas e indica o tratamento.</p>
 
         <div class="ps__grid" role="list">${cards}</div>
