@@ -391,6 +391,7 @@ const fieldLayout = {
 
 const app = document.querySelector("#app");
 let doneTimer;
+let autoTimer;
 
 /* ------------------------------ estado ------------------------------ */
 
@@ -855,7 +856,7 @@ function wireOptionsStep(step, goNext, setEnabled) {
         buttons.forEach((item) => item.setAttribute("aria-pressed", "false"));
         button.setAttribute("aria-pressed", "true");
         update();
-        if (step.auto) window.setTimeout(goNext, 220);
+        if (step.auto) autoTimer = window.setTimeout(goNext, 220);
         return;
       }
 
@@ -916,7 +917,12 @@ function wireFieldsStep(step, goNext, setEnabled) {
 
     if (step.optional) enabled = true;
     if (!inputs.length) enabled = true;
-    if (!step.optional && inputs.every((input) => !input.dataset.required) && !hasOptionalValue) enabled = false;
+    /* Passo só com campos opcionais: exige ao menos um preenchido.
+       hasAttribute, e não dataset.required — o atributo é `data-required`
+       sem valor, então dataset.required é "" e qualquer teste de
+       verdade nele trava todo campo obrigatório. */
+    const anyRequired = inputs.some((input) => input.hasAttribute("data-required"));
+    if (!step.optional && !anyRequired && !hasOptionalValue) enabled = false;
     setEnabled(enabled);
   };
 
@@ -962,6 +968,9 @@ function renderDone() {
 
 function render() {
   if (doneTimer) window.clearInterval(doneTimer);
+  /* Cancela auto-avanco pendente: sem isso, um clique em Continuar dentro
+     da janela de 220ms deixa o timer do passo anterior navegar depois. */
+  if (autoTimer) window.clearTimeout(autoTimer);
   const path = window.location.pathname.replace(/\/$/, "") || SELECT_PATH;
 
   if (path === SELECT_PATH) {
