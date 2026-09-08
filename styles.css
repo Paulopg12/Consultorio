@@ -1070,13 +1070,14 @@ button, input, textarea, select { font: inherit; }
   padding: 7px 0;
 }
 
+/* Silhueta solida: a cor vem do canal alpha do PNG, nao dos pixels
+   internos. O original era contorno preto fino com interior branco, que
+   sumia ao reduzir de 1774px para ~96px de altura. */
 .ph__silhueta img {
-  width: auto;
+  width: 100%;
   height: 100%;
-  margin: 0 auto;
   display: block;
   object-fit: contain;
-  opacity: 0.62;
 }
 
 .ph__label {

@@ -122,10 +122,17 @@ JPG e PNG até 5 MB e mostra pré-visualização, nome e tamanho.
 Cada card mostra uma silhueta de referência — `assets/corpo-frente.png` e
 `assets/corpo-lado.png`, PNG com fundo transparente fornecidos pela marca.
 
-> **Peso a resolver.** Os dois PNG somam 890 KB em 887×1774 e são exibidos em
-> cerca de 60×96 px. É umas dez vezes mais dado do que a tela usa, e o
-> projeto não tem passo de build para otimizar imagem. Vale gerar versões de
-> ~200 px de largura e substituir.
+O PNG original era contorno preto fino com interior branco, e **desaparecia**
+ao ser reduzido de 1774 px para ~96 px de altura: o traço virava fração de
+pixel e o interior branco não contrastava com o creme do card. Os arquivos
+atuais foram gerados a partir do **canal alpha** do original, preenchido com
+uma cor sólida (, 3.43:1 sobre o creme). Assim a silhueta é visível
+em qualquer tamanho.
+
+Os dois foram normalizados pela **altura** — 300×460, corpo centralizado —
+para frente e lado aparecerem na mesma escala; o de lado só ocupa menos
+largura, como deve ser. Peso caiu de 890 KB para 24 KB. Os originais em
+887×1774 estão no commit `15ff7ca`.
 
 Os arquivos vão para o **IndexedDB** (`tl-consulta-fotos`), não para o
 `localStorage`: um JPEG de 3 MB em base64 passa de 4 MB e estouraria a cota

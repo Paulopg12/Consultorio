@@ -1033,7 +1033,7 @@ const SILHUETAS = {
 
 function silhueta(tipo) {
   const img = SILHUETAS[tipo] || SILHUETAS.frente;
-  return `<img src="/assets/${img.arquivo}" alt="${img.alt}" width="887" height="1774" decoding="async">`;
+  return `<img src="/assets/${img.arquivo}" alt="${img.alt}" width="300" height="460" decoding="async">`;
 }
 
 function photoCard(slot) {
