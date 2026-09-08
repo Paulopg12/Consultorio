@@ -918,15 +918,6 @@ button, input, textarea, select { font: inherit; }
 
 .cq__back:hover { color: var(--ink); }
 
-.cq__hint {
-  margin: 0 0 0 auto;
-  font-family: var(--mono);
-  font-size: 9.5px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--faint);
-}
-
 /* ============================================================
    4 - Fotos, pop-up de explicacao e prontuario
    ============================================================ */
@@ -1408,7 +1399,6 @@ button, input, textarea, select { font: inherit; }
   .cq__grid-2 { grid-template-columns: minmax(0, 1fr); }
   .cq__foot-inner { width: calc(100% - 32px); padding: 11px 0; gap: 10px; }
   .cq__foot .btn { max-width: none; }
-  .cq__hint { display: none; }
   .wordmark { font-size: 13px; }
   .ph__grid { gap: 8px; }
   .ph__card { padding: 13px 10px 12px; }

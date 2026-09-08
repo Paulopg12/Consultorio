@@ -1470,7 +1470,6 @@ function renderStep(index) {
   const questionNumber = flow.slice(0, index + 1).filter(isQuestion).length;
   /* Fotos são opcionais, então o Continuar também nasce liberado. */
   const startsEnabled = interstitial || step.kind === "photos";
-  const showHint = !interstitial && step.kind !== "single" && step.kind !== "multiple" && step.kind !== "photos";
   const revisao = emRevisao();
 
   app.innerHTML = `
@@ -1504,7 +1503,6 @@ function renderStep(index) {
             revisao ? "Salvar e voltar" : step.cta || "Continuar"
           } ${icon("arrow")}</button>
           ${showBack ? `<button class="cq__back" type="button" data-back>Voltar</button>` : ""}
-          ${showHint ? `<span class="cq__hint">Enter para avançar</span>` : ""}
         </div>
       </footer>
       ${whyDialog(step)}

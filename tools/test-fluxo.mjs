@@ -94,7 +94,7 @@ console.log("\n2. telas informativas");
   const { doc, erros } = boot(ROTA_IMC, estado);
   const next = doc.querySelector("[data-next]");
   check("Continuar nasce habilitado", next?.getAttribute("aria-disabled") === "false");
-  check("não mostra hint de Enter", !doc.querySelector(".cq__hint"));
+  check("rodapé sem rótulo de atalho", !doc.querySelector(".cq__foot").textContent.includes("Enter"));
   check("contador dá lugar ao rótulo", doc.querySelector(".cq__meta span:last-child")?.textContent.trim() === "Seus números");
   check("tem régua com posição", !!doc.querySelector(".imc__scale")?.getAttribute("style")?.includes("--pos"));
   check("sem erro de runtime", erros.length === 0, erros.join(" | "));
