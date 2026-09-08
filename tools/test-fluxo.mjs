@@ -116,16 +116,15 @@ console.log("\n3. condicionais das telas informativas");
   const semPurgacao = comNao.window.eval('visibleSteps().some(s => s.field === "info_purgacao")');
   check('vômito_induzido "Não" → tela de purgação fica fora', semPurgacao === false);
 
-  const nenhuma = boot("/pages/consultorio-1", { condicoes_restritivas: resposta(["Nenhuma das anteriores"]) });
-  const semAlerta = nenhuma.window.eval('visibleSteps().some(s => s.field === "alerta_contraindicacao")');
-  check('"Nenhuma das anteriores" → sem tela de alerta', semAlerta === false);
-
+  /* A tela de alerta de contraindicacao foi removida a pedido; o aviso de
+     interacao medicamentosa nao existe mais em ponto nenhum do fluxo. */
   const comCondicao = boot("/pages/consultorio-1", { condicoes_restritivas: resposta(["Pancreatite aguda ou crônica"]) });
-  const comAlerta = comCondicao.window.eval('visibleSteps().some(s => s.field === "alerta_contraindicacao")');
-  check("contraindicação marcada → tela de alerta entra", comAlerta === true);
-
-  const { doc } = boot("/pages/consultorio-1", {});
-  check("o aviso de risco saiu do help da pergunta", !doc.body.textContent.includes("podem interagir com os tratamentos"));
+  const temAlerta = comCondicao.window.eval('visibleSteps().some(s => s.field === "alerta_contraindicacao")');
+  check("tela de alerta nao existe mais", temAlerta === false);
+  check(
+    "o aviso de interacao nao aparece em passo nenhum",
+    comCondicao.window.__api.steps.every((s) => !JSON.stringify(s).includes("podem interagir com os tratamentos"))
+  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -266,49 +265,7 @@ console.log("\n8. prontuario");
 }
 
 /* ------------------------------------------------------------------ */
-console.log("\n9. imagens das telas informativas");
-{
-  /* Estas telas sao condicionais: sem o estado que as torna visiveis, o
-     router recua para o passo anterior e o teste mediria a tela errada. */
-  const ATIVACAO = {
-    info_normalizacao: {},
-    info_transicao_saude: {},
-    info_validacao: { tentativas: { rotulo: "Tentativas anteriores", valor: ["Dieta"] } },
-    info_seguranca: {},
-    info_purgacao: { "vômito_induzido": { rotulo: "Vomito induzido", valor: "Sim" } },
-    alerta_contraindicacao: {
-      condicoes_restritivas: { rotulo: "Condicoes restritivas", valor: ["Pancreatite aguda ou crônica"] },
-    },
-  };
-
-  function abrirTela(field) {
-    const { doc, window } = boot(rotaDe(field), ATIVACAO[field]);
-    const passo = window.__api.visibleSteps().find((s) => s.path === window.location.pathname);
-    return { doc, campoRenderizado: passo ? passo.field : null };
-  }
-
-  for (const field of ["info_normalizacao", "info_transicao_saude", "info_validacao", "info_seguranca"]) {
-    const { doc, campoRenderizado } = abrirTela(field);
-    check(field + ": a tela certa abriu", campoRenderizado === field, "abriu " + campoRenderizado);
-    const img = doc.querySelector(".cq__img");
-    check(field + ": tem imagem", !!img);
-    if (img) {
-      check(field + ": alt descritivo", (img.getAttribute("alt") || "").length > 15, img.getAttribute("alt"));
-      check(field + ": aponta para assets", img.getAttribute("src").startsWith("/assets/"), img.getAttribute("src"));
-      check(field + ": dimensoes e lazy", !!img.getAttribute("width") && img.getAttribute("loading") === "lazy");
-    }
-  }
-
-  // telas sobre risco seguem sem ilustracao, de proposito
-  for (const field of ["info_purgacao", "alerta_contraindicacao"]) {
-    const { doc, campoRenderizado } = abrirTela(field);
-    check(field + ": a tela certa abriu", campoRenderizado === field, "abriu " + campoRenderizado);
-    check(field + ": segue sem imagem (proposital)", !doc.querySelector(".cq__img"));
-  }
-}
-
-/* ------------------------------------------------------------------ */
-console.log("\n10. fluxo completo ate a conclusao");
+console.log("\n9. fluxo completo ate a conclusao");
 
 const FILL = {
   text: (id) => (id === "cpf" ? "12345678909" : "Teste Silva"),

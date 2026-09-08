@@ -33,9 +33,6 @@ const protocols = [
   { id: "disfuncao-eretil", nome: "Disfunção erétil", status: "breve" },
 ];
 
-const riskWarning =
-  "Se algum dos casos acima for o seu, os medicamentos injetáveis ou voltados para emagrecimento podem interagir com os tratamentos que você realiza. Sugerimos a ida até seu médico para que ele avalie o uso concomitante de semaglutida, tirzepatida, metformina, entre outros.";
-
 const steps = [
   {
     field: "identificacao",
@@ -54,7 +51,6 @@ const steps = [
   {
     field: "info_normalizacao",
     kind: "info",
-    imagem: { arquivo: "info-alimentacao.jpg", alt: "Legumes e verduras frescas sobre uma superfície clara" },
     label: "Contexto",
     eyebrow: "Contexto",
     title: "Emagrecer não é só força de vontade.",
@@ -160,7 +156,6 @@ const steps = [
   {
     field: "info_transicao_saude",
     kind: "info",
-    imagem: { arquivo: "info-historico.jpg", alt: "Estetoscópio apoiado sobre uma superfície branca" },
     label: "Próxima etapa",
     eyebrow: "Próxima etapa",
     title: "Agora, o seu histórico de saúde.",
@@ -214,27 +209,6 @@ const steps = [
       "Nenhuma das anteriores",
     ],
     exclusive: "Nenhuma das anteriores",
-  },
-  {
-    field: "alerta_contraindicacao",
-    kind: "info",
-    label: "Atenção",
-    eyebrow: "Atenção",
-    title: "Uma das condições que você marcou pede cautela.",
-    body: [riskWarning],
-    cta: "Entendi",
-    showIf: {
-      field: "condicoes_restritivas",
-      includesAny: [
-        "Insuficiência renal moderada ou grave",
-        "Pancreatite aguda ou crônica",
-        "Câncer de tireoide (CMT ou carcinoma medular da tireoide)",
-        "Síndrome de neoplasia endócrina múltipla tipo 2 (MEN 2)",
-        "Doença hepática",
-        "Transtorno alimentar (ex: bulimia, anorexia)",
-        "Cirurgia bariátrica",
-      ],
-    },
   },
   {
     field: "diagnosticos_metabolicos",
@@ -327,7 +301,6 @@ const steps = [
   {
     field: "info_validacao",
     kind: "info",
-    imagem: { arquivo: "info-rotina.jpg", alt: "Par de tênis esportivos no piso de madeira" },
     label: "Contexto",
     eyebrow: "Contexto",
     title: "Você já tentou pelos caminhos certos.",
@@ -443,7 +416,6 @@ const steps = [
   {
     field: "info_seguranca",
     kind: "info",
-    imagem: { arquivo: "info-farmacia.jpg", alt: "Prateleiras de farmácia com caixas de medicamentos organizadas" },
     label: "Segurança",
     eyebrow: "Segurança",
     title: "Como a prescrição funciona aqui.",
@@ -1556,10 +1528,7 @@ function renderControls(step, selected) {
         return "";
       }
     }
-    const imagem = step.imagem
-      ? `<img class="cq__img" src="/assets/${step.imagem.arquivo}" alt="${step.imagem.alt}" width="880" height="300" loading="lazy" decoding="async">`
-      : "";
-    return imagem + (step.body || []).map((paragraph) => `<p class="cq__text">${paragraph}</p>`).join("");
+    return (step.body || []).map((paragraph) => `<p class="cq__text">${paragraph}</p>`).join("");
   }
 
   if (step.kind === "photos") return photosMarkup();

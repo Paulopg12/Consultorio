@@ -10,8 +10,8 @@ Fonts e as respostas ficam em `localStorage`.
 | --- | --- |
 | `/pages/consultorio` | Seleção de protocolo |
 | `/pages/consultorio-inicio` | Como funciona a avaliação |
-| `/pages/consultorio-1` … `-43` | Passos do fluxo (o total visível varia com as condicionais) |
-| `/pages/consultorio-44` | Prontuário e checkout |
+| `/pages/consultorio-1` … `-42` | Passos do fluxo (o total visível varia com as condicionais) |
+| `/pages/consultorio-43` | Prontuário e checkout |
 
 Rota desconhecida cai na seleção de protocolo. Rota de um passo que existe
 mas está invisível (condicional que deixou de valer) recua até o passo
@@ -64,15 +64,12 @@ qual:
   dentro de `try/catch`, porque uma exceção ali aconteceria dentro do
   template de `innerHTML` e apagaria a página inteira.
 - **`eyebrow`** substitui o contador no cabeçalho.
-- **`imagem: { arquivo, alt }`** põe uma faixa ilustrativa acima do texto,
-  servida de `assets/`. O `alt` é obrigatório e descritivo.
 - **Nunca use `auto`** numa tela informativa: não há opção para clicar.
 
-Quatro telas têm ilustração provisória de banco de imagens — ver
-[`assets/CREDITOS.md`](assets/CREDITOS.md), que registra autor, origem e os
-critérios de escolha. `info_purgacao` e `alerta_contraindicacao` seguem sem
-imagem **de propósito**: são telas sobre risco à saúde, e ilustrar isso com
-foto de banco banaliza o conteúdo.
+As telas informativas são **só texto**. Uma tentativa com ilustração de banco
+de imagens foi revertida — a faixa de foto competia com o título e empurrava
+o texto para baixo, sem acrescentar informação. Está no histórico do git
+(commit `fb84fcd`) se alguém quiser retomar com material próprio.
 
 ### Contador e barra de progresso
 
@@ -162,6 +159,22 @@ há um aviso quando falta alguma foto.
 O prontuário **não** redireciona sozinho para o checkout. A tela anterior
 fazia isso em 5 segundos; com um documento para revisar, redirecionar por
 conta própria atropela justamente o que a tela existe para permitir.
+
+## Aviso de interação medicamentosa — fora do fluxo
+
+O texto que alertava sobre interação dos análogos de GLP-1 com tratamentos em
+curso **não aparece mais em nenhum lugar**. Ele era o `help` da pergunta
+`condicoes_restritivas` (o que alarmava todos, inclusive quem marcaria
+"Nenhuma das anteriores"), virou a tela `alerta_contraindicacao`, e a tela foi
+removida a pedido.
+
+Quem marca pancreatite, CMT, MEN 2, doença hepática, transtorno alimentar ou
+bariátrica hoje segue o questionário sem receber nenhum aviso. A resposta
+continua registrada e vai para o médico — muda a comunicação com o paciente,
+não o dado clínico.
+
+Para voltar, o texto está no histórico do git (constante `riskWarning`, commit
+`fb84fcd`).
 
 ## Cabe na primeira tela
 
