@@ -167,14 +167,21 @@ individual.
 Ele fica **logo depois da devolutiva de IMC**: a pessoa acabou de ver o
 próprio número, e é quando o relato de quem passou pelo mesmo pesa mais.
 
-Layout em **coluna única** — fotos em cima, fala embaixo — igual no desktop e
-no celular.
+Layout em **coluna única** — fotos em cima ocupando a largura toda, fala
+embaixo — igual no desktop e no celular.
 
-Como a tela do questionário não pode rolar, o que segura a altura é a
-**largura** das fotos (260 px no total, 230 no celular, 210 em tela baixa), e
-não um recorte: limitar a altura com `object-fit: cover` deixaria apenas uma
-faixa horizontal do meio da pessoa. A tela pede 574 px de 620 no laptop, então
-mexer no tamanho das fotos ou no texto exige rodar a checagem de altura de
+A fala é uma **versão encurtada** do depoimento: duas frases, palavras dela,
+sem reescrita. Saíram os exemplos do meio (o primeiro quilo, o primeiro treino)
+e a frase final, que virou o título da tela. O texto completo está no commit
+`c9e15fc`.
+
+As fotos vieram recortadas em **4:3**, e não no 4:5 original. É o que permite a
+largura cheia: em 4:5, duas fotos de 336 px dariam 420 px só de imagem e a tela
+estouraria. Abaixo de 720 px de altura o CSS aperta para 3:2, que corta 11% e
+devolve 28 px.
+
+A tela pede **578 px de 620** no laptop — é a mais apertada do questionário.
+Mexer no tamanho das fotos ou no texto exige rodar a checagem de altura de
 novo.
 
 **É material real, cedido pela cliente.** Foto de banco nunca pode ocupar

@@ -317,9 +317,10 @@ console.log("\n9. depoimento dentro do questionario");
     "legendas Antes e Depois",
     [...doc.querySelectorAll(".dep__foto figcaption")].map((f) => f.textContent.trim()).join("|") === "Antes|Depois"
   );
-  check("fala com três parágrafos", doc.querySelectorAll(".dep__fala p").length === 3);
+  check("fala enxuta, dois parágrafos", doc.querySelectorAll(".dep__fala p").length === 2);
   check("abre com os 43 kg", doc.querySelector(".dep__fala p").textContent.includes("43 kg"));
-  check("cita o dia 1", doc.body.textContent.includes("Comemore o seu dia 1"));
+  check("o dia 1 ficou no titulo da tela", doc.querySelector(".cq__question").textContent.includes("Comemore o seu dia 1"));
+  check("nao repete o dia 1 na fala", !doc.querySelector(".dep__fala").textContent.includes("dia 1"));
   check("credita a autora", doc.querySelector(".dep__autora").textContent.includes("Laís"));
   check("credita o perfil", doc.body.textContent.includes("@laispavese"));
   check(

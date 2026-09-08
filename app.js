@@ -642,8 +642,7 @@ const DEPOIMENTO = {
   depois: { arquivo: "depoimento-depois.jpg", alt: "Laís hoje, depois do tratamento" },
   paragrafos: [
     "Perdi 43 kg, e o mais importante que aprendi foi não esperar o resultado final para reconhecer a minha evolução.",
-    "Se eu tivesse esperado os 43 kg para comemorar, teria ignorado dezenas de pequenas vitórias que foram justamente o que me fez continuar. O primeiro quilo. O primeiro treino. A primeira camiseta que voltei a usar.",
-    "Você não precisa chegar ao peso ideal para valorizar o quanto já andou. Comemore o seu dia 1.",
+    "Você não precisa chegar ao peso ideal para valorizar o quanto já andou.",
   ],
 };
 
@@ -654,11 +653,11 @@ function depoimento() {
     <section class="dep">
       <div class="dep__fotos">
         <figure class="dep__foto">
-          <img src="/assets/${antes.arquivo}" alt="${antes.alt}" width="560" height="700" loading="lazy" decoding="async">
+          <img src="/assets/${antes.arquivo}" alt="${antes.alt}" width="760" height="570" loading="lazy" decoding="async">
           <figcaption>Antes</figcaption>
         </figure>
         <figure class="dep__foto">
-          <img src="/assets/${depois.arquivo}" alt="${depois.alt}" width="560" height="700" loading="lazy" decoding="async">
+          <img src="/assets/${depois.arquivo}" alt="${depois.alt}" width="760" height="570" loading="lazy" decoding="async">
           <figcaption>Depois</figcaption>
         </figure>
       </div>

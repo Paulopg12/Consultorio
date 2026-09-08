@@ -499,12 +499,12 @@ button, input, textarea, select { font: inherit; }
   gap: 14px;
 }
 
+/* Largura cheia do corpo da tela, uma foto de cada lado. */
 .dep__fotos {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   width: 100%;
-  max-width: 260px;
 }
 
 .dep__foto {
@@ -515,19 +515,22 @@ button, input, textarea, select { font: inherit; }
   background: var(--cream-deep);
 }
 
+/* 4:3 e o que permite a largura cheia: em 4:5 duas fotos de 336px dariam
+   420px de altura e a tela estouraria. Os arquivos ja vem recortados nessa
+   proporcao, entao o cover nao corta mais nada. */
 .dep__foto img {
   display: block;
   width: 100%;
   height: 100%;
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 4 / 3;
   object-fit: cover;
 }
 
 .dep__foto figcaption {
   position: absolute;
-  left: 10px;
-  bottom: 10px;
-  padding: 4px 10px;
+  left: 12px;
+  bottom: 12px;
+  padding: 5px 11px;
   border-radius: 999px;
   background: rgba(22, 17, 15, 0.66);
   color: #fff;
@@ -1527,7 +1530,6 @@ button, input, textarea, select { font: inherit; }
   .ci__main { padding: 32px 20px 44px; }
   .ci__step { grid-template-columns: 38px minmax(0, 1fr); gap: 14px; padding: 16px 16px; }
   .dep { gap: 12px; margin-top: 12px; }
-  .dep__fotos { max-width: 230px; }
   .dep__fala p:first-child { font-size: 14.5px; }
   .dep__fala p { font-size: 12.5px; }
   .ci__icon { width: 38px; height: 38px; }
@@ -1586,7 +1588,9 @@ button, input, textarea, select { font: inherit; }
   .cq__why { margin-top: 10px; padding: 6px 11px; font-size: 12px; }
   /* Tela baixa: as fotos encolhem antes do texto. */
   .dep { margin-top: 11px; gap: 11px; }
-  .dep__fotos { max-width: 210px; gap: 7px; }
+  .dep__fotos { gap: 6px; }
+  /* Recorte um pouco mais horizontal: ganha 28px sem encolher a foto. */
+  .dep__foto img { aspect-ratio: 3 / 2; }
   .dep__fala p { font-size: 12.5px; line-height: 1.5; }
   .dep__fala p:first-child { font-size: 14px; }
   .dep__fala p + p { margin-top: 7px; }
