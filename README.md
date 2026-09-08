@@ -35,11 +35,13 @@ celular fica um por linha**, e os cinco “em breve” passam a linha horizontal
 com o selo à direita: em duas colunas os nomes longos quebravam em três
 linhas apertadas, e seis cards em bloco dariam uma página longa demais.
 
-Só o card aberto é um link; `resumo` e `specs` do protocolo são exibidos na tela
-seguinte ("como funciona"), não na seleção.
+Só o card aberto é um link. As `specs` do protocolo aparecem na tela seguinte
+("como funciona"), não na seleção. O campo `resumo` continua suportado, mas o
+de emagrecimento está sem ele: o texto sobre análogos de GLP-1 foi removido a
+pedido, e a intro usa o depoimento nesse espaço.
 
-Para abrir um protocolo novo: troque o `status` para `"aberto"` e preencha
-`resumo` e `specs`. O fluxo de perguntas hoje é compartilhado — o array
+Para abrir um protocolo novo: troque o `status` para `"aberto"` e preencha as
+`specs`. O fluxo de perguntas hoje é compartilhado — o array
 `steps` é o de emagrecimento. Um segundo protocolo aberto precisa do próprio
 array de perguntas, selecionado por `protocol.id`.
 
@@ -153,6 +155,22 @@ card avisa e o fluxo continua.
 > no navegador de quem preencheu, e o fluxo termina no checkout da Shopify.
 > Nada chega à equipe médica ainda. Para isso é preciso um endpoint que
 > receba o payload do `localStorage` mais os blobs do IndexedDB.
+
+## Depoimento
+
+A intro traz um depoimento com antes e depois, montado a partir da constante
+`DEPOIMENTO` no `app.js`: fotos em `assets/depoimento-antes.jpg` e
+`assets/depoimento-depois.jpg`, três parágrafos de fala, crédito à autora e
+uma ressalva de que o resultado é individual.
+
+**É material real, cedido pela cliente.** Foto de banco nunca pode ocupar
+esse lugar — seria prova social fabricada, e a licença do Pexels proíbe
+explicitamente sugerir endosso por pessoas retratadas. Ao trocar o
+depoimento, troque também as fotos pelas da pessoa citada.
+
+As imagens vieram em 1080×1350 com 2,8 MB somados e foram reduzidas para
+560×700 em JPEG, totalizando 97 KB. Fotografia não precisa do PNG: não há
+transparência a preservar.
 
 ## Prontuário
 

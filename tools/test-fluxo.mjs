@@ -281,7 +281,48 @@ console.log("\n8. prontuario");
 }
 
 /* ------------------------------------------------------------------ */
-console.log("\n9. fluxo completo ate a conclusao");
+console.log("\n9. intro: depoimento e resumo removido");
+{
+  const { doc, erros } = boot("/pages/consultorio-inicio");
+
+  check("resumo do GLP-1 saiu da intro", !doc.body.textContent.includes("GLP-1"));
+  check("nao sobrou bloco de descricao vazio", !doc.querySelector(".ci__desc"));
+
+  const dep = doc.querySelector(".dep");
+  check("depoimento aparece", !!dep);
+  const fotos = [...doc.querySelectorAll(".dep__foto img")];
+  check("duas fotos", fotos.length === 2);
+  check(
+    "antes e depois, nesta ordem",
+    (fotos[0] || {}).getAttribute?.("src")?.includes("antes") &&
+      (fotos[1] || {}).getAttribute?.("src")?.includes("depois")
+  );
+  check(
+    "as duas têm alt descritivo",
+    fotos.every((i) => (i.getAttribute("alt") || "").length > 20)
+  );
+  check(
+    "legendas Antes e Depois",
+    [...doc.querySelectorAll(".dep__foto figcaption")].map((f) => f.textContent.trim()).join("|") === "Antes|Depois"
+  );
+  check("fala com três parágrafos", doc.querySelectorAll(".dep__fala p").length === 3);
+  check("abre com os 43 kg", doc.querySelector(".dep__fala p").textContent.includes("43 kg"));
+  check("cita o dia 1", doc.body.textContent.includes("Comemore o seu dia 1"));
+  check("credita a autora", doc.querySelector(".dep__autora").textContent.includes("Laís"));
+  check("credita o perfil", doc.body.textContent.includes("@laispavese"));
+  check(
+    "traz a ressalva de resultado individual",
+    doc.querySelector(".dep__nota").textContent.includes("Resultado individual")
+  );
+  check("o depoimento vem antes do CTA", (() => {
+    const pos = doc.querySelector(".ci__main").innerHTML;
+    return pos.indexOf("dep__fala") < pos.indexOf("ci__cta");
+  })());
+  check("sem erro de runtime", erros.length === 0, erros.join(" | "));
+}
+
+/* ------------------------------------------------------------------ */
+console.log("\n10. fluxo completo ate a conclusao");
 
 const FILL = {
   text: (id) => (id === "cpf" ? "12345678909" : "Teste Silva"),

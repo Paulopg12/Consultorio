@@ -18,8 +18,6 @@ const protocols = [
     id: "emagrecimento",
     nome: "Emagrecimento",
     status: "aberto",
-    resumo:
-      "Avaliação para tratamento com análogos de GLP-1 — tirzepatida e semaglutida — ou alternativa oral, conforme o seu quadro clínico.",
     specs: [
       ["Atua em", "Apetite, saciedade e esvaziamento gástrico"],
       ["Via", "Oral ou injetável"],
@@ -657,6 +655,51 @@ function renderSelect() {
   });
 }
 
+/* --------------------------- depoimento --------------------------- */
+
+/* Material real, cedido pela cliente. Foto de banco nunca pode ocupar este
+   lugar: seria prova social fabricada. */
+const DEPOIMENTO = {
+  nome: "Laís",
+  arroba: "@laispavese",
+  antes: { arquivo: "depoimento-antes.jpg", alt: "Laís durante uma corrida de rua, antes do tratamento" },
+  depois: { arquivo: "depoimento-depois.jpg", alt: "Laís hoje, depois do tratamento" },
+  paragrafos: [
+    "Perdi 43 kg, e o mais importante que aprendi foi não esperar o resultado final para reconhecer a minha evolução.",
+    "Se eu tivesse esperado os 43 kg para comemorar, teria ignorado dezenas de pequenas vitórias que foram justamente o que me fez continuar. O primeiro quilo. O primeiro treino. A primeira camiseta que voltei a usar.",
+    "Você não precisa chegar ao peso ideal para valorizar o quanto já andou. Comemore o seu dia 1.",
+  ],
+};
+
+function depoimento() {
+  const { nome, arroba, antes, depois, paragrafos } = DEPOIMENTO;
+
+  return `
+    <section class="dep">
+      <p class="eyebrow">Quem já passou por aqui</p>
+
+      <div class="dep__fotos">
+        <figure class="dep__foto">
+          <img src="/assets/${antes.arquivo}" alt="${antes.alt}" width="560" height="700" loading="lazy" decoding="async">
+          <figcaption>Antes</figcaption>
+        </figure>
+        <figure class="dep__foto">
+          <img src="/assets/${depois.arquivo}" alt="${depois.alt}" width="560" height="700" loading="lazy" decoding="async">
+          <figcaption>Depois</figcaption>
+        </figure>
+      </div>
+
+      <blockquote class="dep__fala">
+        ${paragrafos.map((p) => `<p>${p}</p>`).join("")}
+      </blockquote>
+
+      <p class="dep__autora"><b>${nome}</b> <span>${arroba}</span></p>
+
+      <p class="dep__nota">Resultado individual. A resposta ao tratamento varia de pessoa para pessoa e depende de avaliação médica, alimentação e atividade física.</p>
+    </section>
+  `;
+}
+
 /* ----------------------- 2 · como funciona ----------------------- */
 
 function renderIntro() {
@@ -715,6 +758,8 @@ function renderIntro() {
             )
             .join("")}
         </ol>
+
+        ${depoimento()}
 
         <div class="ci__cta">
           <a class="btn" href="${steps[0].path}" data-link>Começar avaliação ${icon("arrow")}</a>
