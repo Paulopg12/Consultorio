@@ -10,8 +10,8 @@ Fonts e as respostas ficam em `localStorage`.
 | --- | --- |
 | `/pages/consultorio` | Seleção de protocolo |
 | `/pages/consultorio-inicio` | Como funciona a avaliação |
-| `/pages/consultorio-1` … `-39` | Passos do fluxo (o total visível varia com as condicionais) |
-| `/pages/consultorio-40` | Prontuário e checkout |
+| `/pages/consultorio-1` … `-36` | Passos do fluxo (o total visível varia com as condicionais) |
+| `/pages/consultorio-37` | Prontuário e checkout |
 
 Rota desconhecida cai na seleção de protocolo. Rota de um passo que existe
 mas está invisível (condicional que deixou de valer) recua até o passo
@@ -86,6 +86,22 @@ telas informativas incluídas — uma barra congelada por uma tela parece
 defeito. O **contador** conta apenas perguntas, e desaparece nas telas
 informativas, dando lugar ao `eyebrow`. Assim nunca se vê um número travado
 ao lado de uma barra que andou.
+
+### Peso, meta e altura
+
+Os três ficam num só passo (`medidas`, `kind: "fields"`), em três colunas no
+desktop e empilhados no celular. Eram três telas separadas.
+
+As chaves gravadas seguem sendo `peso_atual`, `peso_meta` e `altura` — o
+cálculo de IMC e o prontuário dependem delas, e o `localStorage` é indexado
+por chave, então quem respondeu antes da mudança não perde nada.
+
+O `fieldLayout` aceita `grid: 3` além de `grid: true` (duas colunas).
+
+Some daqui o texto de apoio que dizia "se o IMC ficar abaixo de 25, a
+indicação tende a priorizar alternativa oral" — ele contradizia a bula dos
+GLP-1 (≥30, ou ≥27 com comorbidade), e a divergência estava a duas telas de
+distância da régua de IMC.
 
 ### Devolutiva de IMC
 

@@ -88,6 +88,40 @@ console.log("\n1. cálculo de IMC");
 }
 
 /* ------------------------------------------------------------------ */
+console.log("\n1b. peso, meta e altura na mesma tela");
+{
+  const { doc, window, erros } = boot(rotaDe("medidas"));
+  const campos = [...doc.querySelectorAll("[data-field-key]")].map((f) => f.dataset.fieldKey);
+  check("os tres campos numa tela", campos.join(",") === "peso_atual,peso_meta,altura", campos.join(","));
+  check("em tres colunas", !!doc.querySelector(".cq__grid-3"));
+  check("cada um com rotulo", doc.querySelectorAll(".cq__label").length === 3);
+  check(
+    "sufixos kg, kg e cm",
+    [...doc.querySelectorAll(".cq__unit")].map((u) => u.textContent.trim()).join(",") === "kg,kg,cm"
+  );
+  check(
+    "todos obrigatorios",
+    [...doc.querySelectorAll(".cq__input")].every((i) => i.hasAttribute("data-required"))
+  );
+  check("Continuar comeca travado", doc.querySelector("[data-next]").getAttribute("aria-disabled") === "true");
+
+  for (const [id, valor] of [["peso_atual", "92"], ["peso_meta", "78"], ["altura", "178"]]) {
+    const input = doc.getElementById(id);
+    input.value = valor;
+    input.dispatchEvent(new window.Event("input", { bubbles: true }));
+  }
+  check("destrava com os tres preenchidos", doc.querySelector("[data-next]").getAttribute("aria-disabled") === "false");
+
+  const estado = JSON.parse(window.localStorage.getItem("tl-consulta-emagrecimento") || "{}");
+  check("grava nas chaves antigas", ["peso_atual", "peso_meta", "altura"].every((k) => estado[k]));
+  check(
+    "os passos separados nao existem mais",
+    !window.__api.steps.some((s) => ["peso_atual", "peso_meta", "altura"].includes(s.field))
+  );
+  check("sem erro de runtime", erros.length === 0, erros.join(" | "));
+}
+
+/* ------------------------------------------------------------------ */
 console.log("\n2. telas informativas");
 {
   const estado = { peso_atual: resposta("92"), peso_meta: resposta("78"), altura: resposta("178") };
@@ -408,7 +442,7 @@ for (const sexo of ["Masculino", "Feminino"]) {
 
   /* Nomear em vez de contar: assim remover uma tela informativa nao
      quebra o teste, mas remover uma destas quebra — que e o ponto. */
-  const esperadas = ["info_normalizacao", "insight_imc", "info_depoimento"];
+  const esperadas = ["insight_imc", "info_depoimento"];
   const faltando = esperadas.filter((f) => !vistos.includes(f));
   check(`${sexo}: passou pelas telas informativas do caminho`, faltando.length === 0, "faltou: " + faltando.join(", "));
   check(`${sexo}: sem erro de runtime`, r.erros.length === 0, r.erros.join(" | "));

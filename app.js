@@ -47,18 +47,6 @@ const steps = [
     ],
   },
   {
-    field: "info_normalizacao",
-    kind: "info",
-    label: "Contexto",
-    eyebrow: "Contexto",
-    title: "Emagrecer não é só força de vontade.",
-    body: [
-      "Peso corporal depende de hormônios, sono, rotina e histórico de saúde — não apenas de disciplina. É por isso que as próximas perguntas cobrem tanto o seu dia a dia quanto o seu histórico médico.",
-      "Quanto mais preciso o retrato, melhor a indicação que o médico consegue fazer.",
-    ],
-    cta: "Entendi",
-  },
-  {
     field: "sexo_biologico",
     label: "Sexo biológico",
     kind: "single",
@@ -96,26 +84,16 @@ const steps = [
     auto: true,
   },
   {
-    field: "peso_atual",
-    label: "Peso atual",
-    kind: "number",
-    title: "Qual seu peso?",
-    fields: [{ key: "peso_atual", type: "number", placeholder: "Digite seu peso em kg", suffix: "kg", required: true }],
-  },
-  {
-    field: "peso_meta",
-    label: "Meta de peso",
-    kind: "number",
-    title: "Qual sua meta de peso?",
-    fields: [{ key: "peso_meta", type: "number", placeholder: "Digite sua meta de peso em kg", suffix: "kg", required: true }],
-  },
-  {
-    field: "altura",
-    label: "Altura",
-    kind: "number",
-    title: "Qual sua altura?",
-    help: "Se o IMC calculado ficar abaixo de 25, a indicação tende a priorizar alternativa oral ou dietética.",
-    fields: [{ key: "altura", type: "number", placeholder: "Digite sua altura em cm", suffix: "cm", required: true }],
+    field: "medidas",
+    label: "Medidas",
+    kind: "fields",
+    title: "Seu peso, sua meta e sua altura.",
+    help: "A meta é o peso que você quer alcançar — não precisa ser exata.",
+    fields: [
+      { key: "peso_atual", label: "Peso atual", type: "number", placeholder: "0", suffix: "kg", required: true },
+      { key: "peso_meta", label: "Meta de peso", type: "number", placeholder: "0", suffix: "kg", required: true },
+      { key: "altura", label: "Altura", type: "number", placeholder: "0", suffix: "cm", required: true },
+    ],
   },
   {
     field: "insight_imc",
@@ -461,6 +439,7 @@ steps.forEach((step) => {
 
 /* Layout dos passos com muitos campos: evita campo solto em meia coluna. */
 const fieldLayout = {
+  medidas: { grid: 3 },
   identificacao: {
     grid: true,
     order: ["nome", "cpf", "nascimento", "telefone", "email"],
@@ -1534,7 +1513,7 @@ function renderControls(step, selected) {
   const ordered = layout?.order
     ? layout.order.map((key) => step.fields.find((field) => field.key === key)).filter(Boolean)
     : step.fields;
-  const wrapClass = layout?.grid ? "cq__field cq__grid-2" : "cq__field";
+  const wrapClass = layout?.grid === 3 ? "cq__field cq__grid-3" : layout?.grid ? "cq__field cq__grid-2" : "cq__field";
 
   if (step.kind === "singleWithText") {
     return `
