@@ -167,10 +167,15 @@ individual.
 Ele fica **logo depois da devolutiva de IMC**: a pessoa acabou de ver o
 próprio número, e é quando o relato de quem passou pelo mesmo pesa mais.
 
-Por viver dentro do questionário, onde a tela não pode rolar, as fotos ficam
-**ao lado** da fala e não acima: em coluna única, duas fotos 4:5 mais três
-parágrafos passariam de 900 px. No celular empilha, com as fotos limitadas a
-210 px de largura.
+Layout em **coluna única** — fotos em cima, fala embaixo — igual no desktop e
+no celular.
+
+Como a tela do questionário não pode rolar, o que segura a altura é a
+**largura** das fotos (260 px no total, 230 no celular, 210 em tela baixa), e
+não um recorte: limitar a altura com `object-fit: cover` deixaria apenas uma
+faixa horizontal do meio da pessoa. A tela pede 574 px de 620 no laptop, então
+mexer no tamanho das fotos ou no texto exige rodar a checagem de altura de
+novo.
 
 **É material real, cedido pela cliente.** Foto de banco nunca pode ocupar
 esse lugar — seria prova social fabricada, e a licença do Pexels proíbe
