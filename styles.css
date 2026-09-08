@@ -1358,6 +1358,14 @@ button, input, textarea, select { font: inherit; }
 
 .pr__editar:hover { border-color: var(--sage-deep); background: var(--sage-wash); }
 
+.pr__espera {
+  margin: 0;
+  color: var(--copy);
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+}
+
 .pr__rodape {
   margin-top: 24px;
   display: flex;

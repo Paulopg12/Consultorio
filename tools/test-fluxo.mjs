@@ -248,7 +248,13 @@ console.log("\n8. prontuario");
   check("mostra a foto anexada", doc.body.textContent.includes("frente.jpg"));
   check("avisa da foto que falta", doc.querySelector(".pr__aviso").textContent.toLowerCase().includes("lado"));
   check("nao imprime undefined nem null", !doc.body.textContent.includes("undefined") && !doc.body.textContent.includes("null"));
-  check("tem botao de checkout", doc.querySelector(".pr__rodape .btn").getAttribute("href").includes("checkout"));
+  const cta = doc.querySelector(".pr__rodape .btn");
+  check("tem botao de checkout", cta.getAttribute("href").includes("checkout"));
+  check("o rótulo é 'Quero saber mais'", cta.textContent.trim().startsWith("Quero saber mais"), cta.textContent.trim());
+  check(
+    "explica que é durante a análise",
+    (doc.querySelector(".pr__espera") || {}).textContent?.includes("médico analisa")
+  );
   check("nao auto-redireciona", !doc.body.textContent.includes("Abrindo o checkout"));
   check("sem erro de runtime", erros.length === 0, erros.join(" | "));
 

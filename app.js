@@ -1438,7 +1438,8 @@ function renderDone() {
         ${secoes}
 
         <footer class="pr__rodape">
-          <a class="btn" href="${CHECKOUT_URL}">Ir para o checkout ${icon("arrow")}</a>
+          <p class="pr__espera">Enquanto o médico analisa as suas respostas:</p>
+          <a class="btn" href="${CHECKOUT_URL}">Quero saber mais ${icon("arrow")}</a>
           ${privacyNote()}
         </footer>
       </div>
