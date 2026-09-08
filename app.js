@@ -128,6 +128,16 @@ const steps = [
     showIf: { when: () => computeImc() !== null },
   },
   {
+    field: "info_depoimento",
+    kind: "info",
+    label: "Depoimento",
+    eyebrow: "Quem já passou por aqui",
+    title: "Comemore o seu dia 1.",
+    /* Logo depois da devolutiva de IMC: a pessoa acabou de ver o próprio
+       número, e é quando o relato de quem passou pelo mesmo pesa mais. */
+    render: () => depoimento(),
+  },
+  {
     field: "gordura_acumulada",
     label: "Gordura acumulada",
     kind: "single",
@@ -177,19 +187,6 @@ const steps = [
     title: "Você já se arrependeu de uma refeição mais farta e, por isso, recorreu ao vômito induzido ou pensou nisso?",
     options: ["Sim", "Não"],
     auto: true,
-  },
-  {
-    field: "info_purgacao",
-    kind: "info",
-    label: "Cuidado",
-    eyebrow: "Cuidado",
-    title: "Sobre o que você acabou de relatar.",
-    body: [
-      "Provocar vómito depois de comer — com ou sem laxantes ou diuréticos — traz risco real ao esôfago, aos dentes e ao equilíbrio de potássio e sódio no sangue, e pode alterar o ritmo do coração.",
-      "Isso não interrompe a sua avaliação, mas muda a conduta e o médico vai olhar para esse ponto com atenção. Se quiser falar com alguém agora, o CVV atende de graça, 24 horas, no 188.",
-    ],
-    cta: "Entendi",
-    showIf: { field: "vômito_induzido", equals: "Sim" },
   },
   {
     field: "condicoes_restritivas",
@@ -412,17 +409,6 @@ const steps = [
     ],
   },
   {
-    field: "info_seguranca",
-    kind: "info",
-    label: "Segurança",
-    eyebrow: "Segurança",
-    title: "Como a prescrição funciona aqui.",
-    body: [
-      "Nenhum medicamento é liberado sem prescrição. Um médico revisa as suas respostas, decide se há indicação e define o princípio ativo, a via de administração e a dose inicial.",
-      "As próximas perguntas são sobre a sua preferência. Elas orientam o médico, mas não substituem a decisão clínica dele.",
-    ],
-  },
-  {
     field: "preferência_tratamento",
     label: "Preferência de tratamento",
     kind: "single",
@@ -450,16 +436,6 @@ const steps = [
     title: "Você gostaria de começar com uma dosagem mais baixa para evitar possíveis efeitos colaterais e entender como seu corpo vai reagir?",
     options: ["Sim", "Não"],
     auto: true,
-  },
-  {
-    field: "info_quase_la",
-    kind: "info",
-    label: "Quase lá",
-    eyebrow: "Quase lá",
-    title: "Faltam duas perguntas.",
-    body: [
-      "A próxima é um campo aberto, para contar qualquer coisa que as perguntas anteriores não cobriram. É opcional — mas é onde o médico costuma encontrar o detalhe que muda a conduta.",
-    ],
   },
   {
     field: "informacoes_medico",
@@ -676,8 +652,6 @@ function depoimento() {
 
   return `
     <section class="dep">
-      <p class="eyebrow">Quem já passou por aqui</p>
-
       <div class="dep__fotos">
         <figure class="dep__foto">
           <img src="/assets/${antes.arquivo}" alt="${antes.alt}" width="560" height="700" loading="lazy" decoding="async">
@@ -758,8 +732,6 @@ function renderIntro() {
             )
             .join("")}
         </ol>
-
-        ${depoimento()}
 
         <div class="ci__cta">
           <a class="btn" href="${steps[0].path}" data-link>Começar avaliação ${icon("arrow")}</a>

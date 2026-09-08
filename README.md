@@ -10,8 +10,8 @@ Fonts e as respostas ficam em `localStorage`.
 | --- | --- |
 | `/pages/consultorio` | Seleção de protocolo |
 | `/pages/consultorio-inicio` | Como funciona a avaliação |
-| `/pages/consultorio-1` … `-42` | Passos do fluxo (o total visível varia com as condicionais) |
-| `/pages/consultorio-43` | Prontuário e checkout |
+| `/pages/consultorio-1` … `-40` | Passos do fluxo (o total visível varia com as condicionais) |
+| `/pages/consultorio-41` | Prontuário e checkout |
 
 Rota desconhecida cai na seleção de protocolo. Rota de um passo que existe
 mas está invisível (condicional que deixou de valer) recua até o passo
@@ -158,10 +158,19 @@ card avisa e o fluxo continua.
 
 ## Depoimento
 
-A intro traz um depoimento com antes e depois, montado a partir da constante
-`DEPOIMENTO` no `app.js`: fotos em `assets/depoimento-antes.jpg` e
-`assets/depoimento-depois.jpg`, três parágrafos de fala, crédito à autora e
-uma ressalva de que o resultado é individual.
+O passo `info_depoimento` traz um depoimento com antes e depois, montado a
+partir da constante `DEPOIMENTO` no `app.js`: fotos em
+`assets/depoimento-antes.jpg` e `assets/depoimento-depois.jpg`, três
+parágrafos de fala, crédito à autora e uma ressalva de que o resultado é
+individual.
+
+Ele fica **logo depois da devolutiva de IMC**: a pessoa acabou de ver o
+próprio número, e é quando o relato de quem passou pelo mesmo pesa mais.
+
+Por viver dentro do questionário, onde a tela não pode rolar, as fotos ficam
+**ao lado** da fala e não acima: em coluna única, duas fotos 4:5 mais três
+parágrafos passariam de 900 px. No celular empilha, com as fotos limitadas a
+210 px de largura.
 
 **É material real, cedido pela cliente.** Foto de banco nunca pode ocupar
 esse lugar — seria prova social fabricada, e a licença do Pexels proíbe
@@ -216,6 +225,22 @@ não o dado clínico.
 
 Para voltar, o texto está no histórico do git (constante `riskWarning`, commit
 `fb84fcd`).
+
+## Conteúdo de cuidado removido do fluxo
+
+Três telas foram retiradas a pedido, e com elas saíram avisos que o fluxo
+antes dava. Fica registrado porque **nenhum deles existe mais em nenhum
+ponto** — o dado continua sendo coletado e vai para o médico; o que mudou é a
+comunicação com o paciente.
+
+| Tela | O que dizia | Recuperar de |
+| --- | --- | --- |
+| `alerta_contraindicacao` | interação dos análogos de GLP-1 com tratamentos em curso | `fb84fcd` |
+| `info_purgacao` | riscos da purgação e o canal do CVV (188) | `8df40ba` |
+| `info_seguranca` | que nada é liberado sem prescrição médica | `8df40ba` |
+
+O caso do CVV é o mais delicado: aparecia só para quem relatava vómito
+induzido, e era o único canal de apoio oferecido no produto.
 
 ## Cabe na primeira tela
 

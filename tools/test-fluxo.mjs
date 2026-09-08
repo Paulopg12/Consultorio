@@ -108,13 +108,15 @@ console.log("\n2. telas informativas");
 /* ------------------------------------------------------------------ */
 console.log("\n3. condicionais das telas informativas");
 {
+  /* As telas de purgacao e de contraindicacao foram removidas a pedido:
+     nenhum aviso de cuidado clinico sobrou no fluxo. */
   const comSim = boot("/pages/consultorio-1", { "vômito_induzido": resposta("Sim") });
   const temPurgacao = comSim.window.eval('visibleSteps().some(s => s.field === "info_purgacao")');
-  check('vômito_induzido "Sim" → tela de purgação entra no fluxo', temPurgacao === true);
-
-  const comNao = boot("/pages/consultorio-1", { "vômito_induzido": resposta("Não") });
-  const semPurgacao = comNao.window.eval('visibleSteps().some(s => s.field === "info_purgacao")');
-  check('vômito_induzido "Não" → tela de purgação fica fora', semPurgacao === false);
+  check("tela de purgação nao existe mais", temPurgacao === false);
+  check(
+    "o canal do CVV nao aparece em passo nenhum",
+    comSim.window.__api.steps.every((s) => !JSON.stringify(s).includes("188"))
+  );
 
   /* A tela de alerta de contraindicacao foi removida a pedido; o aviso de
      interacao medicamentosa nao existe mais em ponto nenhum do fluxo. */
@@ -281,12 +283,22 @@ console.log("\n8. prontuario");
 }
 
 /* ------------------------------------------------------------------ */
-console.log("\n9. intro: depoimento e resumo removido");
+console.log("\n9. depoimento dentro do questionario");
 {
-  const { doc, erros } = boot("/pages/consultorio-inicio");
+  const intro = boot("/pages/consultorio-inicio");
+  check("resumo do GLP-1 saiu da intro", !intro.doc.body.textContent.includes("GLP-1"));
+  check("nao sobrou bloco de descricao vazio", !intro.doc.querySelector(".ci__desc"));
+  check("depoimento nao esta mais na intro", !intro.doc.querySelector(".dep"));
 
-  check("resumo do GLP-1 saiu da intro", !doc.body.textContent.includes("GLP-1"));
-  check("nao sobrou bloco de descricao vazio", !doc.querySelector(".ci__desc"));
+  /* Agora e uma tela do questionario. */
+  const { doc, erros, window } = boot(rotaDe("info_depoimento"), {
+    peso_atual: resposta("92"),
+    altura: resposta("178"),
+  });
+  const passo = window.__api.visibleSteps().find((s) => s.path === window.location.pathname);
+  check("a tela certa abriu", passo && passo.field === "info_depoimento", passo && passo.field);
+  check("o contador da lugar ao rotulo", doc.querySelector(".cq__meta span:last-child").textContent.trim() === "Quem já passou por aqui");
+  check("Continuar nasce habilitado", doc.querySelector("[data-next]").getAttribute("aria-disabled") === "false");
 
   const dep = doc.querySelector(".dep");
   check("depoimento aparece", !!dep);
@@ -314,10 +326,6 @@ console.log("\n9. intro: depoimento e resumo removido");
     "traz a ressalva de resultado individual",
     doc.querySelector(".dep__nota").textContent.includes("Resultado individual")
   );
-  check("o depoimento vem antes do CTA", (() => {
-    const pos = doc.querySelector(".ci__main").innerHTML;
-    return pos.indexOf("dep__fala") < pos.indexOf("ci__cta");
-  })());
   check("sem erro de runtime", erros.length === 0, erros.join(" | "));
 }
 
@@ -341,7 +349,7 @@ async function percorrer(sexo) {
   while (guarda++ < 90) {
     if (doc.querySelector(".pr")) break;
     const rota = window.location.pathname;
-    const info = !!doc.querySelector(".imc, .cq__text");
+    const info = !!doc.querySelector(".imc, .cq__text, .dep");
 
     const visiveis = () =>
       [...doc.querySelectorAll(".cq__input")].filter((i) => {
