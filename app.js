@@ -1,5 +1,37 @@
 const STORAGE_KEY = "tl-consulta-emagrecimento";
+const PROTOCOL_KEY = "tl-consulta-protocolo";
 const CHECKOUT_URL = "/cart/45368212062242:1?checkout";
+
+/* ------------------------------------------------------------------
+   Protocolos do consultório.
+
+   Para abrir um protocolo novo: troque "status" para "aberto" e
+   preencha "resumo" e "specs". Enquanto o status for "breve", o
+   protocolo aparece na fila de espera e não é clicável.
+
+   O fluxo de perguntas hoje é compartilhado (o array `steps` abaixo,
+   de emagrecimento). Ao abrir um segundo protocolo, dê a ele o
+   próprio array de perguntas e selecione por `protocol.id`.
+   ------------------------------------------------------------------ */
+const protocols = [
+  {
+    id: "emagrecimento",
+    nome: "Emagrecimento",
+    status: "aberto",
+    resumo:
+      "Avaliação para tratamento com análogos de GLP-1 — tirzepatida e semaglutida — ou alternativa oral, conforme o seu quadro clínico.",
+    specs: [
+      ["Atua em", "Apetite, saciedade e esvaziamento gástrico"],
+      ["Via", "Oral ou injetável"],
+      ["Prescrição", "Sujeita à avaliação médica"],
+    ],
+  },
+  { id: "cabelo", nome: "Cabelo", status: "breve" },
+  { id: "forca", nome: "Força", status: "breve" },
+  { id: "sono", nome: "Sono", status: "breve" },
+  { id: "ejaculacao-precoce", nome: "Ejaculação precoce", status: "breve" },
+  { id: "disfuncao-eretil", nome: "Disfunção erétil", status: "breve" },
+];
 
 const riskWarning =
   "Se algum dos casos acima for o seu, os medicamentos injetáveis ou voltados para emagrecimento podem interagir com os tratamentos que você realiza. Sugerimos a ida até seu médico para que ele avalie o uso concomitante de semaglutida, tirzepatida, metformina, entre outros.";
@@ -341,12 +373,26 @@ const steps = [
   { field: "tem_exame", label: "Exames", kind: "single", title: "Você já tem algum exame?", options: ["Sim", "Não"], auto: true },
 ];
 
+const SELECT_PATH = "/pages/consultorio";
+const INTRO_PATH = "/pages/consultorio-inicio";
+
 steps.forEach((step, index) => {
   step.path = `/pages/consultorio-${index + 1}`;
 });
 
+/* Layout dos passos com muitos campos: evita campo solto em meia coluna. */
+const fieldLayout = {
+  identificacao: {
+    grid: true,
+    order: ["nome", "cpf", "nascimento", "telefone", "email"],
+    wide: ["nome"],
+  },
+};
+
 const app = document.querySelector("#app");
 let doneTimer;
+
+/* ------------------------------ estado ------------------------------ */
 
 function readState() {
   try {
@@ -381,56 +427,199 @@ function clearAnswer(key) {
   writeState(state);
 }
 
+function openProtocols() {
+  return protocols.filter((item) => item.status === "aberto");
+}
+
+function setProtocol(id) {
+  try {
+    localStorage.setItem(PROTOCOL_KEY, id);
+  } catch {
+    /* navegação anônima com storage bloqueado: segue sem persistir */
+  }
+}
+
+/* Sem escolha salva, cai no único protocolo aberto — deep link não trava. */
+function getProtocol() {
+  let saved = null;
+  try {
+    saved = localStorage.getItem(PROTOCOL_KEY);
+  } catch {
+    saved = null;
+  }
+  const match = protocols.find((item) => item.id === saved && item.status === "aberto");
+  return match || openProtocols()[0] || protocols[0];
+}
+
 function navigate(path) {
   history.pushState({}, "", path);
+  window.scrollTo(0, 0);
   render();
 }
 
-function logo() {
-  return `<span class="cq__logo">the men's <span>&</span> the ladies</span>`;
+/* ------------------------------ peças ------------------------------ */
+
+function wordmark() {
+  return `<span class="wordmark">the men&rsquo;s <i>&amp;</i> the ladies</span>`;
 }
 
 function icon(type) {
   const icons = {
-    phone: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="6.8" y="2.4" width="10.4" height="19.2" rx="2.6"></rect><path d="M10.4 5.6h3.2"></path><path d="M8.6 13h1.8l.9-2.1 1.5 4.2 1-2.1h1.6"></path></svg>`,
-    cart: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 3h2.3l2 10.2a1.7 1.7 0 0 0 1.7 1.4h7.8a1.7 1.7 0 0 0 1.7-1.4L19.2 7H6"></path><circle cx="9.5" cy="19.4" r="1.4"></circle><circle cx="16.4" cy="19.4" r="1.4"></circle><path d="m10.6 9.4 1.7 1.7 3.4-3.4"></path></svg>`,
-    box: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.6 3.4 7v10l8.6 4.4L20.6 17V7z"></path><path d="M3.4 7 12 11.4 20.6 7"></path><path d="M12 11.4v10"></path></svg>`,
-    check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m4.5 12.5 5 5 10-11"></path></svg>`,
+    arrow: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15"></path><path d="m13 6 6 6-6 6"></path></svg>`,
+    back: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12H5"></path><path d="m11 6-6 6 6 6"></path></svg>`,
+    lock: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10.5" rx="2.4"></rect><path d="M8 10.5V7.6a4 4 0 0 1 8 0v2.9"></path></svg>`,
+    check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m4.5 12.5 5 5 10-11"></path></svg>`,
   };
   return icons[type];
 }
 
-function renderIntro() {
+function privacyNote() {
+  return `<p class="privacy">${icon("lock")} Somente o médico tem acesso às suas respostas.</p>`;
+}
+
+/* --------------------- 1 · seleção de protocolo --------------------- */
+
+function renderSelect() {
+  const aberto = openProtocols()[0];
+  const fila = protocols.filter((item) => item.status !== "aberto");
+
+  const specs = [...(aberto?.specs || []), ["Avaliação", "Cerca de 30 perguntas, sem consulta por vídeo"]];
+
   app.innerHTML = `
-    <main class="cf">
-      <header class="cf__bar"><h1>Emagrecimento</h1></header>
-      <section class="cf__body">
-        <h2 class="cf__title">Entenda como funciona:</h2>
-        <ol class="cf__steps">
-          <li class="cf__step">
-            <span class="cf__icon">${icon("phone")}</span>
-            <h3>Fale sobre sua saúde</h3>
-            <p>Explique suas queixas, sintomas, histórico médico e estilo de vida.</p>
-          </li>
-          <li class="cf__step">
-            <span class="cf__icon">${icon("cart")}</span>
-            <h3>Finalize a consulta e aguarde o médico</h3>
-            <p>Depois da avaliação medica você receberá a indicação do protocolo mais adequado ao seu caso.</p>
-          </li>
-          <li class="cf__step">
-            <span class="cf__icon">${icon("box")}</span>
-            <h3>Diagnóstico realizado e protocolo liberado</h3>
-            <p>Com a devida indicação, poderá efetivar seu pedido na plataforma parceira e recebê-lo em sua casa.</p>
-          </li>
-        </ol>
-        <div class="cf__cta">
-          <a class="btn btn--intro" href="/pages/consultorio-1" data-link>Começar minha consulta</a>
-          <p class="cf__note">*Somente o médico tem acesso ao seu histórico</p>
+    <main class="ps">
+      <header class="ps__bar">
+        <div class="ps__bar-inner">
+          ${wordmark()}
+          <span class="ps__tag">Consultório digital</span>
         </div>
-      </section>
+      </header>
+
+      <div class="ps__main">
+        <div class="ps__head">
+          <p class="eyebrow">Escolha seu protocolo</p>
+          <h1 class="ps__title">O que você quer tratar?</h1>
+          <p class="ps__lede">Você responde a uma avaliação sobre a sua saúde. Um médico analisa o caso e indica o tratamento adequado ao seu quadro — ou informa que não há indicação.</p>
+        </div>
+
+        <div class="ps__grid">
+          <section class="ps__open">
+            <span class="ps__badge">Aberto agora</span>
+            <h2 class="ps__name">${aberto.nome}</h2>
+            <p class="ps__desc">${aberto.resumo}</p>
+
+            <dl class="ps__specs">
+              ${specs
+                .map(
+                  ([termo, valor]) => `
+                <div class="ps__spec">
+                  <dt>${termo}</dt>
+                  <dd>${valor}</dd>
+                </div>`
+                )
+                .join("")}
+            </dl>
+
+            <a class="btn" href="${INTRO_PATH}" data-protocol="${aberto.id}">Começar avaliação ${icon("arrow")}</a>
+            ${privacyNote()}
+          </section>
+
+          <aside class="ps__queue">
+            <div class="ps__queue-head">
+              <p class="eyebrow">Em preparação</p>
+              <span class="ps__queue-count">${fila.length} protocolos</span>
+            </div>
+            <ul class="ps__list">
+              ${fila
+                .map(
+                  (item) => `
+                <li class="ps__item">
+                  <span class="ps__item-name">${item.nome}</span>
+                  <span class="ps__soon">Em breve</span>
+                </li>`
+                )
+                .join("")}
+            </ul>
+            <p class="ps__queue-note">Cada protocolo entra no ar quando a equipe médica valida o fluxo de avaliação dele.</p>
+          </aside>
+        </div>
+      </div>
     </main>
   `;
+
+  app.querySelector("[data-protocol]")?.addEventListener("click", (event) => {
+    event.preventDefault();
+    setProtocol(aberto.id);
+    navigate(INTRO_PATH);
+  });
 }
+
+/* ----------------------- 2 · como funciona ----------------------- */
+
+function renderIntro() {
+  const protocolo = getProtocol();
+
+  /* Prazos reais (avaliação médica, envio) podem ser adicionados como
+     terceiro item de cada etapa: ["Título", "Descrição", "ATÉ 24H"]. */
+  const etapas = [
+    [
+      "Você responde a avaliação",
+      "Queixas, histórico médico, medicamentos em uso e hábitos. Tudo por escrito, sem consulta por vídeo.",
+      "Cerca de 30 perguntas",
+    ],
+    [
+      "Um médico analisa o seu caso",
+      "Ele confirma se há indicação e define o princípio ativo, a via de administração e a dose inicial.",
+      "",
+    ],
+    [
+      "O protocolo é liberado",
+      "Com a indicação médica, você finaliza o pedido na plataforma parceira e recebe em casa.",
+      "",
+    ],
+  ];
+
+  app.innerHTML = `
+    <main class="ci">
+      <header class="ci__bar">
+        <div class="ci__bar-inner">
+          <button class="ci__back" type="button" data-to-select>${icon("back")} Trocar protocolo</button>
+          ${wordmark()}
+        </div>
+      </header>
+
+      <div class="ci__main">
+        <p class="eyebrow">Protocolo selecionado</p>
+        <h1 class="ci__title">${protocolo.nome}</h1>
+        <p class="ci__lede">Antes de começar, veja como funciona a avaliação.</p>
+
+        <ol class="ci__track">
+          ${etapas
+            .map(
+              ([titulo, texto, quando]) => `
+            <li class="ci__step">
+              <span class="ci__num" aria-hidden="true"></span>
+              <div>
+                <h3>${titulo}</h3>
+                <p>${texto}</p>
+                ${quando ? `<span class="ci__when">${quando}</span>` : ""}
+              </div>
+            </li>`
+            )
+            .join("")}
+        </ol>
+
+        <div class="ci__cta">
+          <a class="btn" href="${steps[0].path}" data-link>Começar avaliação ${icon("arrow")}</a>
+          ${privacyNote()}
+        </div>
+      </div>
+    </main>
+  `;
+
+  app.querySelector("[data-to-select]")?.addEventListener("click", () => navigate(SELECT_PATH));
+}
+
+/* ------------------------ fluxo condicional ------------------------ */
 
 function matchesCondition(condition) {
   if (!condition) return true;
@@ -452,7 +641,9 @@ function donePath() {
   return `/pages/consultorio-${steps.length + 1}`;
 }
 
-function fieldMarkup(field, step) {
+/* ------------------------- campos e opções ------------------------- */
+
+function fieldMarkup(field, step, layout) {
   const saved = getValue(field.key) || "";
   const label = field.label ? `<label class="cq__label" for="${field.key}">${field.label}</label>` : "";
   const inputMode = field.type === "tel" ? "tel" : field.type === "number" ? "decimal" : "";
@@ -472,10 +663,11 @@ function fieldMarkup(field, step) {
       ? `<textarea class="cq__input cq__textarea" ${attrs}>${saved}</textarea>`
       : `<input class="cq__input" type="${field.type}" value="${saved}" ${attrs}>`;
   const suffix = field.suffix ? `<span class="cq__unit">${field.suffix}</span>` : "";
+  const wide = layout?.wide?.includes(field.key) ? ' style="grid-column:1/-1"' : "";
   const className = field.suffix ? "cq__group cq__measure" : "cq__group";
 
   return `
-    <div class="${className}" data-field-wrap data-field-key="${field.key}" data-step-field="${step.field}"${revealValues}>
+    <div class="${className}" data-field-wrap data-field-key="${field.key}" data-step-field="${step.field}"${revealValues}${wide}>
       ${label}
       ${control}
       ${suffix}
@@ -484,8 +676,12 @@ function fieldMarkup(field, step) {
 }
 
 function optionMarkup(step, selected) {
+  /* Listas longas vão para duas colunas: mantém tudo na primeira tela. */
+  const dense = step.options.length > 6 ? " cq__options--dense" : "";
+  const multi = step.kind === "multiple" ? " cq__options--multi" : "";
+
   return `
-    <div class="cq__options">
+    <div class="cq__options${dense}${multi}" role="group">
       ${step.options
         .map((option) => {
           const pressed = Array.isArray(selected) ? selected.includes(option) : selected === option;
@@ -517,33 +713,46 @@ function formatCpf(text) {
     .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
 }
 
+/* --------------------- 3 · tela de pergunta --------------------- */
+
 function renderStep(index) {
   const flow = visibleSteps();
   const step = flow[index] || flow[0];
   const progress = `${((index + 1) / flow.length) * 100}%`;
   const selected = getValue(step.field);
   const showBack = index > 0;
+  const protocolo = getProtocol();
+  const isFields = step.kind !== "single" && step.kind !== "multiple";
 
   app.innerHTML = `
     <main class="cq" style="--progress:${progress}">
       <header class="cq__top">
         <div class="cq__top-inner">
-          ${logo()}
-          <span class="cq__count">Pergunta ${index + 1} de ${flow.length}</span>
+          ${wordmark()}
+          <div class="cq__meta">
+            <span class="cq__protocol">${protocolo.nome}</span>
+            <span class="cq__meta-sep" aria-hidden="true"></span>
+            <span>${index + 1}/${flow.length}</span>
+          </div>
         </div>
         <div class="cq__bar" role="progressbar" aria-valuemin="1" aria-valuemax="${flow.length}" aria-valuenow="${index + 1}">
           <span></span>
         </div>
       </header>
-      <section class="cq__body">
-        <h1 class="cq__question">${step.title}</h1>
-        ${step.help ? `<p class="cq__help">${step.help}</p>` : ""}
-        ${renderControls(step, selected)}
-      </section>
+
+      <div class="cq__body">
+        <div class="cq__body-inner">
+          <h1 class="cq__question">${step.title}</h1>
+          ${step.help ? `<p class="cq__help">${step.help}</p>` : ""}
+          ${renderControls(step, selected)}
+        </div>
+      </div>
+
       <footer class="cq__foot">
         <div class="cq__foot-inner">
-          <button class="btn cq__btn" type="button" aria-disabled="true" data-next>Continuar</button>
+          <button class="btn" type="button" aria-disabled="true" data-next>Continuar ${icon("arrow")}</button>
           ${showBack ? `<button class="cq__back" type="button" data-back>Voltar</button>` : ""}
+          ${isFields ? `<span class="cq__hint">Enter para avançar</span>` : ""}
         </div>
       </footer>
     </main>
@@ -555,6 +764,12 @@ function renderStep(index) {
 function renderControls(step, selected) {
   if (step.kind === "single" || step.kind === "multiple") return optionMarkup(step, selected);
 
+  const layout = fieldLayout[step.field];
+  const ordered = layout?.order
+    ? layout.order.map((key) => step.fields.find((field) => field.key === key)).filter(Boolean)
+    : step.fields;
+  const wrapClass = layout?.grid ? "cq__field cq__grid-2" : "cq__field";
+
   if (step.kind === "singleWithText") {
     return `
       ${optionMarkup(step, selected)}
@@ -564,8 +779,10 @@ function renderControls(step, selected) {
     `;
   }
 
-  return `<div class="cq__field">${step.fields.map((field) => fieldMarkup(field, step)).join("")}</div>`;
+  return `<div class="${wrapClass}">${ordered.map((field) => fieldMarkup(field, step, layout)).join("")}</div>`;
 }
+
+/* ---------------------------- interação ---------------------------- */
 
 function wireStep(index) {
   const flow = visibleSteps();
@@ -715,15 +932,17 @@ function wireFieldsStep(step, goNext, setEnabled) {
   update();
 }
 
+/* ------------------------- 4 · conclusão ------------------------- */
+
 function renderDone() {
   app.innerHTML = `
     <main class="done">
-      <section class="done__inner">
+      <div class="done__inner">
         <span class="done__seal">${icon("check")}</span>
-        <h1>Recebemos o seu pedido, um especialista deverá entrar em contato!</h1>
-        <p>Estamos abrindo o seu checkout em <b data-count>5</b>s</p>
-        <a class="btn cq__btn" href="${CHECKOUT_URL}">Ir para o checkout</a>
-      </section>
+        <h1>Recebemos as suas respostas</h1>
+        <p>Um especialista entra em contato com o resultado da avaliação médica. Abrindo o checkout em <b data-count>5</b>s.</p>
+        <a class="btn" href="${CHECKOUT_URL}">Ir para o checkout ${icon("arrow")}</a>
+      </div>
     </main>
   `;
 
@@ -739,18 +958,31 @@ function renderDone() {
   }, 1000);
 }
 
+/* ------------------------------ router ------------------------------ */
+
 function render() {
   if (doneTimer) window.clearInterval(doneTimer);
-  const path = window.location.pathname.replace(/\/$/, "") || "/pages/consultorio";
-  document.title = path.includes("consultorio-") ? "Consultorio - Perguntas - The Ladies" : "Consultorio - The Ladies";
+  const path = window.location.pathname.replace(/\/$/, "") || SELECT_PATH;
 
-  if (path === "/pages/consultorio") {
+  if (path === SELECT_PATH) {
+    document.title = "Consultório — the men's & the ladies";
+    renderSelect();
+  } else if (path === INTRO_PATH) {
+    document.title = `${getProtocol().nome} — como funciona`;
     renderIntro();
   } else if (path === donePath()) {
+    document.title = "Avaliação enviada — Consultório";
     renderDone();
   } else {
     const flow = visibleSteps();
     const index = flow.findIndex((step) => step.path === path);
+    if (index < 0 && !steps.some((step) => step.path === path)) {
+      history.replaceState({}, "", SELECT_PATH);
+      document.title = "Consultório — the men's & the ladies";
+      renderSelect();
+      return;
+    }
+    document.title = `Avaliação — ${getProtocol().nome}`;
     renderStep(index >= 0 ? index : 0);
   }
 
