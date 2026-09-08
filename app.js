@@ -54,6 +54,7 @@ const steps = [
   {
     field: "info_normalizacao",
     kind: "info",
+    imagem: { arquivo: "info-alimentacao.jpg", alt: "Legumes e verduras frescas sobre uma superfície clara" },
     label: "Contexto",
     eyebrow: "Contexto",
     title: "Emagrecer não é só força de vontade.",
@@ -159,6 +160,7 @@ const steps = [
   {
     field: "info_transicao_saude",
     kind: "info",
+    imagem: { arquivo: "info-historico.jpg", alt: "Estetoscópio apoiado sobre uma superfície branca" },
     label: "Próxima etapa",
     eyebrow: "Próxima etapa",
     title: "Agora, o seu histórico de saúde.",
@@ -325,6 +327,7 @@ const steps = [
   {
     field: "info_validacao",
     kind: "info",
+    imagem: { arquivo: "info-rotina.jpg", alt: "Par de tênis esportivos no piso de madeira" },
     label: "Contexto",
     eyebrow: "Contexto",
     title: "Você já tentou pelos caminhos certos.",
@@ -440,6 +443,7 @@ const steps = [
   {
     field: "info_seguranca",
     kind: "info",
+    imagem: { arquivo: "info-farmacia.jpg", alt: "Prateleiras de farmácia com caixas de medicamentos organizadas" },
     label: "Segurança",
     eyebrow: "Segurança",
     title: "Como a prescrição funciona aqui.",
@@ -620,6 +624,8 @@ function icon(type) {
     chat: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20.4 12.2c0 4-3.8 7.2-8.4 7.2a9.6 9.6 0 0 1-2.6-.35L4.6 20.8l1.3-3.6A6.9 6.9 0 0 1 3.6 12.2C3.6 8.2 7.4 5 12 5s8.4 3.2 8.4 7.2Z"></path></svg>`,
     shield: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.8 4.8 5.6v6c0 4.2 3 7.6 7.2 9.6 4.2-2 7.2-5.4 7.2-9.6v-6z"></path><path d="m8.8 12.2 2.2 2.2 4.2-4.4"></path></svg>`,
     close: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6.4 6.4l11.2 11.2"></path><path d="M17.6 6.4 6.4 17.6"></path></svg>`,
+    alert: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.6 2.6 20.4h18.8z"></path><path d="M12 9.6v4.6"></path><path d="M12 17.2h.01"></path></svg>`,
+    chevron: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m7 10 5 5 5-5"></path></svg>`,
   };
   return icons[type];
 }
@@ -1324,12 +1330,47 @@ function rotuloDoCampo(key) {
   return campo?.label || dono?.label || key;
 }
 
-function linhaProntuario(key) {
+/* Um campo "esperado" é o que o fluxo realmente pediu a esta pessoa: o passo
+   dono tem de estar visível, não ser opcional, e um campo revelado por opção
+   só conta se a opção que o revela foi escolhida. Sem isso o prontuário
+   acusaria falta de resposta em pergunta que nunca apareceu. */
+function campoEsperado(key) {
+  const dono =
+    steps.find((step) => step.field === key) ||
+    steps.find((step) => (step.fields || []).some((field) => field.key === key));
+  if (!dono) return false;
+  if (!matchesCondition(dono.showIf)) return false;
+  if (dono.optional || dono.kind === "photos" || isInterstitial(dono)) return false;
+  if (dono.field === key) return true;
+
+  const campo = (dono.fields || []).find((field) => field.key === key);
+  if (!campo) return false;
+  if (campo.revealValues) {
+    const escolhido = getValue(dono.field);
+    const valores = Array.isArray(escolhido) ? escolhido : [escolhido];
+    return campo.revealValues.some((valor) => valores.includes(valor));
+  }
+  return !!campo.required;
+}
+
+function linhaProntuario(key, esperado) {
   const valor = valorLegivel(key);
-  if (!valor) return "";
+
+  if (!valor) {
+    /* Opcional em branco não é pendência: sai do prontuário. */
+    if (!esperado) return "";
+    return `
+    <div class="pr__linha pr__linha--falta">
+      <span class="pr__marca pr__marca--falta" aria-hidden="true">${icon("alert")}</span>
+      <span class="pr__campo">${rotuloDoCampo(key)}</span>
+      <span class="pr__valor pr__valor--falta">Não informado</span>
+    </div>
+  `;
+  }
+
   return `
     <div class="pr__linha">
-      <span class="pr__check" aria-hidden="true">${icon("check")}</span>
+      <span class="pr__marca" aria-hidden="true">${icon("check")}</span>
       <span class="pr__campo">${rotuloDoCampo(key)}</span>
       <span class="pr__valor">${valor}</span>
     </div>
@@ -1342,33 +1383,52 @@ function renderDone() {
   const nome = valorLegivel("nome");
   const dados = computeImc();
 
+  let totalFaltando = 0;
+
   const secoes = PRONTUARIO.map((secao) => {
-    const linhas = secao.campos.map(linhaProntuario).filter(Boolean);
+    const esperados = secao.campos.filter(campoEsperado);
+    const faltando = esperados.filter((key) => !valorLegivel(key));
+    const respondidos = secao.campos.filter((key) => valorLegivel(key));
+    totalFaltando += faltando.length;
+
+    const linhas = secao.campos.map((key) => linhaProntuario(key, esperados.includes(key))).filter(Boolean);
 
     const extra =
       secao.imc && dados
         ? `
-      <div class="pr__linha pr__linha--calc">
-        <span class="pr__check" aria-hidden="true">${icon("check")}</span>
-        <span class="pr__campo">IMC calculado</span>
-        <span class="pr__valor">${NUM_BR.format(dados.imc)} · ${dados.faixa}</span>
-      </div>`
+        <div class="pr__linha pr__linha--calc">
+          <span class="pr__marca" aria-hidden="true">${icon("check")}</span>
+          <span class="pr__campo">IMC calculado</span>
+          <span class="pr__valor">${NUM_BR.format(dados.imc)} · ${dados.faixa}</span>
+        </div>`
         : "";
 
     if (!linhas.length && !extra) return "";
 
+    const completa = faltando.length === 0;
     const alvo = secao.campos.map(pathDoCampo).find(Boolean);
-    const editar = alvo ? `<button class="pr__editar" type="button" data-editar="${alvo}">Editar</button>` : "";
+    const editar = alvo ? `<button class="pr__editar" type="button" data-editar="${alvo}">Editar respostas</button>` : "";
 
+    /* Fechada por padrão; se falta algo, abre para a pendência não passar
+       despercebida atrás de um botão. */
     return `
-      <section class="pr__secao">
-        <header class="pr__cabeca">
+      <details class="pr__secao${completa ? "" : " pr__secao--falta"}"${completa ? "" : " open"}>
+        <summary class="pr__cabeca">
+          <span class="pr__status" aria-hidden="true">${icon(completa ? "check" : "alert")}</span>
           <h2>${secao.titulo}</h2>
+          <span class="pr__resumo">${
+            completa
+              ? `${respondidos.length} ${respondidos.length === 1 ? "resposta" : "respostas"}`
+              : `falta ${faltando.length}`
+          }</span>
+          <span class="pr__seta" aria-hidden="true">${icon("chevron")}</span>
+        </summary>
+        <div class="pr__corpo">
+          ${linhas.join("")}
+          ${extra}
           ${editar}
-        </header>
-        ${linhas.join("")}
-        ${extra}
-      </section>
+        </div>
+      </details>
     `;
   })
     .filter(Boolean)
@@ -1383,6 +1443,7 @@ function renderDone() {
       }">Enviar agora</button></p>`
     : "";
 
+  /* totalFaltando já foi somado no map acima. */
   app.innerHTML = `
     <main class="pr">
       <div class="pr__inner">
@@ -1392,7 +1453,13 @@ function renderDone() {
           <h1 class="pr__titulo">Prontuário${nome ? " de " + nome.split(" ")[0] : ""}</h1>
           <p class="pr__sub">${respondidas} ${
             respondidas === 1 ? "resposta registrada" : "respostas registradas"
-          }. Revise antes de seguir — depois disso, quem lê é a equipe médica.</p>
+          }${
+            totalFaltando
+              ? `, e ${totalFaltando} ${totalFaltando === 1 ? "pendência" : "pendências"} destacada${
+                  totalFaltando === 1 ? "" : "s"
+                } abaixo`
+              : ""
+          }. Toque numa seção para abrir — depois disso, quem lê é a equipe médica.</p>
         </header>
 
         ${avisoFoto}
@@ -1489,7 +1556,10 @@ function renderControls(step, selected) {
         return "";
       }
     }
-    return (step.body || []).map((paragraph) => `<p class="cq__text">${paragraph}</p>`).join("");
+    const imagem = step.imagem
+      ? `<img class="cq__img" src="/assets/${step.imagem.arquivo}" alt="${step.imagem.alt}" width="880" height="300" loading="lazy" decoding="async">`
+      : "";
+    return imagem + (step.body || []).map((paragraph) => `<p class="cq__text">${paragraph}</p>`).join("");
   }
 
   if (step.kind === "photos") return photosMarkup();

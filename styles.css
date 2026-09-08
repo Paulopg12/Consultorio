@@ -1224,46 +1224,97 @@ button, input, textarea, select { font: inherit; }
   cursor: pointer;
 }
 
+/* --- imagem das telas informativas --- */
+.cq__img {
+  display: block;
+  width: 100%;
+  height: 118px;
+  margin: 16px 0 0;
+  border-radius: var(--r);
+  object-fit: cover;
+  background: var(--cream-deep);
+}
+
+/* --- prontuário: seções recolhíveis --- */
 .pr__secao {
-  margin-bottom: 10px;
-  padding: 16px 18px 8px;
+  margin-bottom: 8px;
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
   background: var(--paper);
+  overflow: hidden;
 }
 
+.pr__secao--falta { border-color: #e8cfa4; background: #fffdf9; }
+
 .pr__cabeca {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto 18px;
+  align-items: center;
+  gap: 11px;
+  padding: 14px 16px;
+  cursor: pointer;
+  list-style: none;
+  transition: background 150ms ease;
 }
+
+.pr__cabeca::-webkit-details-marker { display: none; }
+.pr__cabeca:hover { background: var(--cream); }
+
+.pr__secao[open] .pr__cabeca { border-bottom: 1px solid var(--line); }
+
+.pr__status {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--sage-wash);
+  color: var(--sage-deep);
+}
+
+.pr__status svg { width: 12px; height: 12px; stroke-width: 2.6; }
+
+.pr__secao--falta .pr__status {
+  background: #fbeed6;
+  color: #a9762c;
+}
+
+.pr__secao--falta .pr__status svg { stroke-width: 1.9; }
 
 .pr__cabeca h2 {
   margin: 0;
-  color: var(--faint);
+  color: var(--ink);
+  font-size: 13.5px;
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  text-transform: none;
+  font-family: var(--font);
+}
+
+.pr__resumo {
   font-family: var(--mono);
   font-size: 9.5px;
-  line-height: 1.4;
-  font-weight: 600;
-  letter-spacing: 0.14em;
+  line-height: 1;
+  letter-spacing: 0.11em;
   text-transform: uppercase;
+  color: var(--faint);
+  white-space: nowrap;
 }
 
-.pr__editar {
-  flex: none;
-  border: 0;
-  background: none;
-  padding: 2px 0;
-  color: var(--sage-deep);
-  font-size: 11.5px;
-  font-weight: 800;
-  cursor: pointer;
+.pr__secao--falta .pr__resumo { color: #a9762c; }
+
+.pr__seta {
+  display: grid;
+  place-items: center;
+  color: var(--faint);
+  transition: rotate 200ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.pr__editar:hover { text-decoration: underline; }
+.pr__seta svg { width: 16px; height: 16px; stroke-width: 2; }
+.pr__secao[open] .pr__seta { rotate: 180deg; }
+
+.pr__corpo { padding: 4px 16px 14px; }
 
 .pr__linha {
   display: grid;
@@ -1274,9 +1325,9 @@ button, input, textarea, select { font: inherit; }
   border-bottom: 1px solid var(--cream-deep);
 }
 
-.pr__secao .pr__linha:last-child { border-bottom: 0; }
+.pr__corpo .pr__linha:last-of-type { border-bottom: 0; }
 
-.pr__check {
+.pr__marca {
   width: 16px;
   height: 16px;
   display: grid;
@@ -1287,7 +1338,14 @@ button, input, textarea, select { font: inherit; }
   translate: 0 3px;
 }
 
-.pr__check svg { width: 10px; height: 10px; stroke-width: 3; }
+.pr__marca svg { width: 10px; height: 10px; stroke-width: 3; }
+
+.pr__marca--falta {
+  background: #fbeed6;
+  color: #a9762c;
+}
+
+.pr__marca--falta svg { width: 11px; height: 11px; stroke-width: 2; }
 
 .pr__campo {
   color: var(--muted);
@@ -1302,7 +1360,23 @@ button, input, textarea, select { font: inherit; }
   font-weight: 600;
 }
 
+.pr__valor--falta { color: #a9762c; font-weight: 700; }
 .pr__linha--calc .pr__valor { font-family: var(--mono); font-size: 12.5px; }
+
+.pr__editar {
+  margin-top: 12px;
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--sage-deep);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.pr__editar:hover { border-color: var(--sage-deep); background: var(--sage-wash); }
 
 .pr__rodape {
   margin-top: 24px;
@@ -1357,6 +1431,9 @@ button, input, textarea, select { font: inherit; }
   .pr__secao { padding: 14px 14px 6px; }
   .pr__linha { grid-template-columns: 16px minmax(0, 1fr); gap: 8px; }
   .pr__valor { grid-column: 2; }
+  .pr__cabeca { grid-template-columns: 20px minmax(0, 1fr) auto 16px; gap: 9px; padding: 12px 13px; }
+  .pr__corpo { padding: 4px 13px 12px; }
+  .cq__img { height: 96px; margin-top: 13px; }
 }
 
 @media (max-width: 380px) {
@@ -1393,6 +1470,7 @@ button, input, textarea, select { font: inherit; }
   .ph__silhueta svg { width: 27px; height: 54px; }
   .ph__btn { min-height: 36px; margin-top: 8px; }
   .ph__hint { margin-top: 11px; }
+  .cq__img { height: 92px; margin-top: 12px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

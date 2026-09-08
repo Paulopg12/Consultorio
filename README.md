@@ -64,7 +64,15 @@ qual:
   dentro de `try/catch`, porque uma exceção ali aconteceria dentro do
   template de `innerHTML` e apagaria a página inteira.
 - **`eyebrow`** substitui o contador no cabeçalho.
+- **`imagem: { arquivo, alt }`** põe uma faixa ilustrativa acima do texto,
+  servida de `assets/`. O `alt` é obrigatório e descritivo.
 - **Nunca use `auto`** numa tela informativa: não há opção para clicar.
+
+Quatro telas têm ilustração provisória de banco de imagens — ver
+[`assets/CREDITOS.md`](assets/CREDITOS.md), que registra autor, origem e os
+critérios de escolha. `info_purgacao` e `alerta_contraindicacao` seguem sem
+imagem **de propósito**: são telas sobre risco à saúde, e ilustrar isso com
+foto de banco banaliza o conteúdo.
 
 ### Contador e barra de progresso
 
@@ -129,8 +137,19 @@ card avisa e o fluxo continua.
 ## Prontuário
 
 A tela final (`renderDone`) monta um prontuário a partir do que foi
-respondido, agrupado pelo array `PRONTUARIO`: cada seção lista os campos que
-tiveram resposta, com marca de conferido, e traz um "Editar".
+respondido, agrupado pelo array `PRONTUARIO`. Cada seção é um `<details>`
+recolhido, com um cabeçalho que resume o estado:
+
+| Símbolo | Significado |
+| --- | --- |
+| check | todos os campos esperados da seção têm resposta |
+| atenção | falta pelo menos um; a seção **abre sozinha** e a linha aparece como "Não informado" |
+
+O que conta como "esperado" é decidido por `campoEsperado()`: o passo dono tem
+de estar visível, não ser opcional, e um campo revelado por opção (os
+`revealValues`) só conta se a opção que o revela foi escolhida. Sem isso o
+prontuário acusaria falta de resposta em pergunta que nunca apareceu para
+aquela pessoa. Campo opcional em branco simplesmente não entra.
 
 O "Editar" navega para a pergunta com `?revisao=1`. Nesse modo o CTA vira
 "Salvar e voltar" e o `goNext` retorna ao prontuário em vez de seguir o
