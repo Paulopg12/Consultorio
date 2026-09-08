@@ -22,7 +22,11 @@ Definidos no array `protocols`, no topo do `app.js`:
 
 - **Emagrecimento** — aberto
 - **Cabelo, Força, Sono, Ejaculação precoce, Disfunção erétil** — `status: "breve"`,
-  aparecem na fila de espera com selo "Em breve" e não são clicáveis
+  entram na grade com selo "Em breve", esmaecidos e não clicáveis
+
+Os seis aparecem numa grade de 3 por linha, com cards de mesmo tamanho. Só o
+card aberto é um link; `resumo` e `specs` do protocolo são exibidos na tela
+seguinte ("como funciona"), não na seleção.
 
 Para abrir um protocolo novo: troque o `status` para `"aberto"` e preencha
 `resumo` e `specs`. O fluxo de perguntas hoje é compartilhado — o array
@@ -38,6 +42,10 @@ abaixo de 720px de altura um modo compacto reduz alturas e espaçamentos.
 
 As perguntas saíram do fluxo `?type=wl` e a lógica condicional está em
 `showIf` (`equals`, `includes`, `includesAny`).
+
+O indicador de seleção é o mesmo em todo o questionário — um quadrado de raio
+5px, tanto para escolha única quanto para múltipla. O que diferencia é a dica
+"Selecione todas que se aplicam", exibida só nos passos de múltipla escolha.
 
 ## Design
 

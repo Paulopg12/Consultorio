@@ -171,7 +171,7 @@ button, input, textarea, select { font: inherit; }
 .privacy svg { width: 13px; height: 13px; flex: none; stroke-width: 1.7; }
 
 /* ============================================================
-   1 - Selecao de protocolo
+   1 - Selecao de protocolo: grade 3 por linha, cards uniformes
    ============================================================ */
 
 .ps {
@@ -223,10 +223,8 @@ button, input, textarea, select { font: inherit; }
   width: 100%;
   max-width: 1120px;
   margin: 0 auto;
-  padding: 54px 32px 64px;
+  padding: 56px 32px 56px;
 }
-
-.ps__head { max-width: 620px; }
 
 .ps__title {
   margin: 16px 0 0;
@@ -238,168 +236,103 @@ button, input, textarea, select { font: inherit; }
 }
 
 .ps__lede {
-  margin: 16px 0 0;
-  max-width: 480px;
-  color: var(--copy);
-  font-size: 15px;
-  line-height: 1.55;
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
 }
 
-/* grade: aberto a esquerda, fila de espera a direita */
+/* --- grade --- */
 .ps__grid {
-  margin-top: 40px;
+  margin: 38px 0 0;
+  padding: 0;
+  list-style: none;
   display: grid;
-  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-  gap: 24px;
-  align-items: start;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
 }
 
-/* --- card do protocolo aberto --- */
-.ps__open {
+.ps__card {
   position: relative;
   display: flex;
   flex-direction: column;
-  padding: 28px 30px 30px;
+  min-height: 172px;
+  padding: 20px 22px 22px;
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
+  background: rgba(255, 255, 255, 0.46);
+}
+
+/* protocolo aberto: o unico clicavel */
+.ps__card--open {
   background: var(--paper);
-  box-shadow: 0 1px 2px rgba(22, 17, 15, 0.03), 0 12px 28px -18px rgba(22, 17, 15, 0.16);
+  border-color: var(--sage-deep);
+  box-shadow: 0 1px 2px rgba(22, 17, 15, 0.03), 0 14px 30px -20px rgba(22, 17, 15, 0.22);
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 180ms ease;
+}
+
+.ps__card--open:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 1px 2px rgba(22, 17, 15, 0.04), 0 20px 38px -20px rgba(22, 17, 15, 0.26);
 }
 
 .ps__badge {
   align-self: flex-start;
-  padding: 5px 11px;
+  padding: 5px 10px;
   border-radius: 999px;
   background: var(--sage-deep);
   color: #fff;
   font-family: var(--mono);
-  font-size: 9.5px;
+  font-size: 9px;
   line-height: 1;
   font-weight: 600;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
-.ps__name {
-  margin: 18px 0 0;
+.ps__badge--soon {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--faint);
+}
+
+.ps__card-name {
+  margin: auto 0 0;
   color: var(--ink);
-  font-size: clamp(24px, 2.9vw, 32px);
-  line-height: 1.06;
+  font-size: 21px;
+  line-height: 1.12;
   font-weight: 800;
   letter-spacing: -0.03em;
 }
 
-.ps__desc {
-  margin: 12px 0 0;
-  max-width: 46ch;
-  color: var(--copy);
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-/* bloco de dados clinicos - o detalhe que da autoridade */
-.ps__specs {
-  margin: 24px 0 0;
-  padding: 18px 0 0;
-  border-top: 1px solid var(--line);
-  display: grid;
-  gap: 11px;
-}
-
-.ps__spec {
-  display: grid;
-  grid-template-columns: 92px minmax(0, 1fr);
-  align-items: baseline;
-  gap: 14px;
-}
-
-.ps__spec dt {
-  font-family: var(--mono);
-  font-size: 9.5px;
-  line-height: 1.5;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  color: var(--faint);
-}
-
-.ps__spec dd {
-  margin: 0;
+.ps__card--soon .ps__card-name {
   color: var(--ink);
-  font-size: 13px;
-  line-height: 1.45;
-  font-weight: 600;
-}
-
-.ps__open .btn { margin-top: 26px; align-self: flex-start; }
-.ps__open .privacy { margin-top: 14px; }
-
-/* --- fila de espera --- */
-.ps__queue { display: flex; flex-direction: column; }
-
-.ps__queue-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 0 4px 12px;
-}
-
-.ps__queue-count {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  color: var(--faint);
-}
-
-.ps__list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  background: rgba(255, 255, 255, 0.55);
-  overflow: hidden;
-}
-
-.ps__item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  padding: 15px 20px;
-  color: var(--muted);
-}
-
-.ps__item + .ps__item { border-top: 1px solid var(--line); }
-
-.ps__item-name {
-  color: var(--ink);
-  font-size: 14px;
-  line-height: 1.3;
+  opacity: 0.5;
   font-weight: 700;
-  letter-spacing: -0.015em;
-  opacity: 0.62;
 }
 
-.ps__soon {
-  flex: none;
-  font-family: var(--mono);
-  font-size: 9px;
-  line-height: 1;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--faint);
-  padding: 5px 9px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--cream);
+.ps__card-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  color: var(--sage-deep);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
 }
 
-.ps__queue-note {
-  margin: 14px 4px 0;
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.5;
+.ps__card-cta svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2;
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ps__card--open:hover .ps__card-cta svg { transform: translateX(3px); }
+
+.ps__foot {
+  margin: 30px 0 0;
 }
 
 /* ============================================================
@@ -532,6 +465,45 @@ button, input, textarea, select { font: inherit; }
   color: var(--faint);
 }
 
+/* descricao e dados clinicos, movidos da selecao para ca */
+.ci__desc {
+  margin: 18px 0 0;
+  max-width: 54ch;
+  color: var(--copy);
+  font-size: 14.5px;
+  line-height: 1.6;
+}
+
+.ci__specs {
+  margin: 22px 0 0;
+  padding: 18px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.ci__spec dt {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  line-height: 1.5;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.ci__spec dd {
+  margin: 6px 0 0;
+  color: var(--ink);
+  font-size: 13.5px;
+  line-height: 1.4;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.ci__track { margin-top: 26px; }
+
 .ci__cta {
   margin-top: 34px;
   display: flex;
@@ -632,6 +604,18 @@ button, input, textarea, select { font: inherit; }
   line-height: 1.55;
 }
 
+.cq__multi-hint {
+  margin: 12px 0 0;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  line-height: 1;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.cq__multi-hint + .cq__options { margin-top: 12px; }
+
 /* --- opcoes --- */
 .cq__options {
   margin-top: 20px;
@@ -665,17 +649,19 @@ button, input, textarea, select { font: inherit; }
   transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
 }
 
+/* Um unico formato de indicador em todo o questionario: escolha unica e
+   multipla usam o mesmo quadrado arredondado, alinhado ao raio dos cards.
+   A diferenca de comportamento e dita pelo texto "Selecione todas que se
+   aplicam", nao pela forma. */
 .cq__option::before {
   content: "";
   flex: none;
   width: 15px;
   height: 15px;
   border: 1.5px solid var(--field);
-  border-radius: 50%;
+  border-radius: 5px;
   transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
 }
-
-.cq__options--multi .cq__option::before { border-radius: 5px; }
 
 .cq__option:hover {
   border-color: var(--sage);
@@ -863,18 +849,20 @@ button, input, textarea, select { font: inherit; }
    ============================================================ */
 
 @media (max-width: 940px) {
-  .ps__grid { grid-template-columns: minmax(0, 1fr); gap: 20px; }
-  .ps__main { padding: 40px 24px 52px; }
+  .ps__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ps__main { padding: 44px 24px 48px; }
   .ps__bar-inner { padding: 0 24px; }
+  .ci__specs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 }
 
 @media (max-width: 620px) {
   .ps__bar-inner { height: 56px; }
   .ps__main { padding: 32px 20px 44px; }
   .ps__title { font-size: 28px; }
-  .ps__open { padding: 22px 20px 24px; }
-  .ps__spec { grid-template-columns: 82px minmax(0, 1fr); gap: 10px; }
-  .ps__open .btn { align-self: stretch; }
+  .ps__grid { gap: 10px; margin-top: 28px; }
+  .ps__card { min-height: 138px; padding: 16px 16px 18px; }
+  .ps__card-name { font-size: 17px; }
+  .ci__specs { grid-template-columns: minmax(0, 1fr); gap: 14px; padding: 16px 0; }
 
   .ci__bar-inner { height: 56px; padding: 0 20px; }
   .ci__main { padding: 32px 20px 44px; }

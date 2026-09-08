@@ -482,9 +482,24 @@ function privacyNote() {
 
 function renderSelect() {
   const aberto = openProtocols()[0];
-  const fila = protocols.filter((item) => item.status !== "aberto");
 
-  const specs = [...(aberto?.specs || []), ["Avaliação", "Cerca de 30 perguntas, sem consulta por vídeo"]];
+  const cards = protocols
+    .map((item) => {
+      if (item.status === "aberto") {
+        return `
+        <a class="ps__card ps__card--open" role="listitem" href="${INTRO_PATH}" data-protocol="${item.id}">
+          <span class="ps__badge">Aberto agora</span>
+          <h2 class="ps__card-name">${item.nome}</h2>
+          <span class="ps__card-cta">Começar avaliação ${icon("arrow")}</span>
+        </a>`;
+      }
+      return `
+        <div class="ps__card ps__card--soon" role="listitem" aria-disabled="true">
+          <span class="ps__badge ps__badge--soon">Em breve</span>
+          <h2 class="ps__card-name">${item.nome}</h2>
+        </div>`;
+    })
+    .join("");
 
   app.innerHTML = `
     <main class="ps">
@@ -496,53 +511,13 @@ function renderSelect() {
       </header>
 
       <div class="ps__main">
-        <div class="ps__head">
-          <p class="eyebrow">Escolha seu protocolo</p>
-          <h1 class="ps__title">O que você quer tratar?</h1>
-          <p class="ps__lede">Você responde a uma avaliação sobre a sua saúde. Um médico analisa o caso e indica o tratamento adequado ao seu quadro — ou informa que não há indicação.</p>
-        </div>
+        <p class="eyebrow">Escolha seu protocolo</p>
+        <h1 class="ps__title">O que você quer tratar?</h1>
+        <p class="ps__lede">Um médico avalia suas respostas e indica o tratamento.</p>
 
-        <div class="ps__grid">
-          <section class="ps__open">
-            <span class="ps__badge">Aberto agora</span>
-            <h2 class="ps__name">${aberto.nome}</h2>
-            <p class="ps__desc">${aberto.resumo}</p>
+        <div class="ps__grid" role="list">${cards}</div>
 
-            <dl class="ps__specs">
-              ${specs
-                .map(
-                  ([termo, valor]) => `
-                <div class="ps__spec">
-                  <dt>${termo}</dt>
-                  <dd>${valor}</dd>
-                </div>`
-                )
-                .join("")}
-            </dl>
-
-            <a class="btn" href="${INTRO_PATH}" data-protocol="${aberto.id}">Começar avaliação ${icon("arrow")}</a>
-            ${privacyNote()}
-          </section>
-
-          <aside class="ps__queue">
-            <div class="ps__queue-head">
-              <p class="eyebrow">Em preparação</p>
-              <span class="ps__queue-count">${fila.length} protocolos</span>
-            </div>
-            <ul class="ps__list">
-              ${fila
-                .map(
-                  (item) => `
-                <li class="ps__item">
-                  <span class="ps__item-name">${item.nome}</span>
-                  <span class="ps__soon">Em breve</span>
-                </li>`
-                )
-                .join("")}
-            </ul>
-            <p class="ps__queue-note">Cada protocolo entra no ar quando a equipe médica valida o fluxo de avaliação dele.</p>
-          </aside>
-        </div>
+        <div class="ps__foot">${privacyNote()}</div>
       </div>
     </main>
   `;
@@ -559,13 +534,15 @@ function renderSelect() {
 function renderIntro() {
   const protocolo = getProtocol();
 
+  const specs = [...(protocolo.specs || []), ["Avaliação", "Cerca de 30 perguntas"]];
+
   /* Prazos reais (avaliação médica, envio) podem ser adicionados como
      terceiro item de cada etapa: ["Título", "Descrição", "ATÉ 24H"]. */
   const etapas = [
     [
       "Você responde a avaliação",
       "Queixas, histórico médico, medicamentos em uso e hábitos. Tudo por escrito, sem consulta por vídeo.",
-      "Cerca de 30 perguntas",
+      "",
     ],
     [
       "Um médico analisa o seu caso",
@@ -591,7 +568,23 @@ function renderIntro() {
       <div class="ci__main">
         <p class="eyebrow">Protocolo selecionado</p>
         <h1 class="ci__title">${protocolo.nome}</h1>
-        <p class="ci__lede">Antes de começar, veja como funciona a avaliação.</p>
+        ${protocolo.resumo ? `<p class="ci__desc">${protocolo.resumo}</p>` : ""}
+
+        ${
+          specs.length
+            ? `<dl class="ci__specs">
+          ${specs
+            .map(
+              ([termo, valor]) => `
+            <div class="ci__spec">
+              <dt>${termo}</dt>
+              <dd>${valor}</dd>
+            </div>`
+            )
+            .join("")}
+        </dl>`
+            : ""
+        }
 
         <ol class="ci__track">
           ${etapas
@@ -681,7 +674,10 @@ function optionMarkup(step, selected) {
   const dense = step.options.length > 6 ? " cq__options--dense" : "";
   const multi = step.kind === "multiple" ? " cq__options--multi" : "";
 
+  const hint = step.kind === "multiple" ? `<p class="cq__multi-hint">Selecione todas que se aplicam</p>` : "";
+
   return `
+    ${hint}
     <div class="cq__options${dense}${multi}" role="group">
       ${step.options
         .map((option) => {
