@@ -352,7 +352,8 @@ async function percorrer(sexo) {
   while (guarda++ < 90) {
     if (doc.querySelector(".pr")) break;
     const rota = window.location.pathname;
-    const info = !!doc.querySelector(".imc, .cq__text, .dep");
+    const passo = window.__api.visibleSteps().find((s) => s.path === rota);
+    const campo = passo ? passo.field : null;
 
     const visiveis = () =>
       [...doc.querySelectorAll(".cq__input")].filter((i) => {
@@ -377,7 +378,7 @@ async function percorrer(sexo) {
       }
       await sleep(300);
       if (window.location.pathname !== rota) {
-        visitadas.push({ rota, info });
+        visitadas.push({ rota, campo });
         continue;
       }
       for (const input of visiveis()) {
@@ -394,7 +395,7 @@ async function percorrer(sexo) {
     next.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
     await sleep(20);
     if (window.location.pathname === rota) return { visitadas, fim: false, travou: rota, erros };
-    visitadas.push({ rota, info });
+    visitadas.push({ rota, campo });
   }
 
   return { visitadas, fim: !!doc.querySelector(".pr"), travou: null, erros, window };
@@ -402,9 +403,14 @@ async function percorrer(sexo) {
 
 for (const sexo of ["Masculino", "Feminino"]) {
   const r = await percorrer(sexo);
-  const infos = r.visitadas.filter((v) => v.info).length;
+  const vistos = r.visitadas.map((v) => v.campo).filter(Boolean);
   check(`${sexo}: chega na conclusão`, r.fim, r.travou ? `travou em ${r.travou}` : "");
-  check(`${sexo}: passou por telas informativas`, infos >= 4, `passou por ${infos}`);
+
+  /* Nomear em vez de contar: assim remover uma tela informativa nao
+     quebra o teste, mas remover uma destas quebra — que e o ponto. */
+  const esperadas = ["info_normalizacao", "insight_imc", "info_depoimento"];
+  const faltando = esperadas.filter((f) => !vistos.includes(f));
+  check(`${sexo}: passou pelas telas informativas do caminho`, faltando.length === 0, "faltou: " + faltando.join(", "));
   check(`${sexo}: sem erro de runtime`, r.erros.length === 0, r.erros.join(" | "));
   if (r.window) {
     const gravadas = Object.keys(JSON.parse(r.window.localStorage.getItem("tl-consulta-emagrecimento") || "{}"));

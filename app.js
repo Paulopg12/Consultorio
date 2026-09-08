@@ -161,17 +161,6 @@ const steps = [
     auto: true,
   },
   {
-    field: "info_transicao_saude",
-    kind: "info",
-    label: "Próxima etapa",
-    eyebrow: "Próxima etapa",
-    title: "Agora, o seu histórico de saúde.",
-    body: [
-      "As próximas perguntas são sobre diagnósticos, medicamentos em uso e histórico familiar. Algumas parecem distantes do emagrecimento, mas são elas que descartam interações e contraindicações.",
-      "Se não souber responder alguma com precisão, responda o mais próximo do que lembra — há um campo aberto no fim para detalhar.",
-    ],
-  },
-  {
     field: "vontade_incontrolável",
     label: "Vontade de comer",
     kind: "single",

@@ -10,8 +10,8 @@ Fonts e as respostas ficam em `localStorage`.
 | --- | --- |
 | `/pages/consultorio` | Seleção de protocolo |
 | `/pages/consultorio-inicio` | Como funciona a avaliação |
-| `/pages/consultorio-1` … `-40` | Passos do fluxo (o total visível varia com as condicionais) |
-| `/pages/consultorio-41` | Prontuário e checkout |
+| `/pages/consultorio-1` … `-39` | Passos do fluxo (o total visível varia com as condicionais) |
+| `/pages/consultorio-40` | Prontuário e checkout |
 
 Rota desconhecida cai na seleção de protocolo. Rota de um passo que existe
 mas está invisível (condicional que deixou de valer) recua até o passo
