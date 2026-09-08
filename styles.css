@@ -515,15 +515,16 @@ button, input, textarea, select { font: inherit; }
   background: var(--cream-deep);
 }
 
-/* 4:3 e o que permite a largura cheia: em 4:5 duas fotos de 336px dariam
-   420px de altura e a tela estouraria. Os arquivos ja vem recortados nessa
-   proporcao, entao o cover nao corta mais nada. */
+/* 4:5 integral, a proporcao em que as fotos foram tiradas: a pessoa
+   aparece inteira, sem recorte. E a unica tela do questionario que pode
+   rolar -- ver a nota no README. O contain (e nao cover) garante que
+   nenhuma borda seja comida se a imagem trocar de proporcao. */
 .dep__foto img {
   display: block;
   width: 100%;
-  height: 100%;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
+  height: auto;
+  aspect-ratio: 4 / 5;
+  object-fit: contain;
 }
 
 .dep__foto figcaption {
@@ -650,7 +651,11 @@ button, input, textarea, select { font: inherit; }
   transition: width 240ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* area rolavel apenas se o conteudo realmente estourar */
+/* Rola apenas se o conteudo realmente estourar. Nas perguntas isso nao
+   deve acontecer -- a excecao consciente e a tela de depoimento, onde a
+   foto integral em largura cheia nao caberia. O rodape faz parte do grid
+   de 100dvh, entao o Continuar continua visivel mesmo com o corpo
+   rolando: nada de acao fica escondido. */
 .cq__body {
   min-height: 0;
   overflow-y: auto;
@@ -1589,8 +1594,6 @@ button, input, textarea, select { font: inherit; }
   /* Tela baixa: as fotos encolhem antes do texto. */
   .dep { margin-top: 11px; gap: 11px; }
   .dep__fotos { gap: 6px; }
-  /* Recorte um pouco mais horizontal: ganha 28px sem encolher a foto. */
-  .dep__foto img { aspect-ratio: 3 / 2; }
   .dep__fala p { font-size: 12.5px; line-height: 1.5; }
   .dep__fala p:first-child { font-size: 14px; }
   .dep__fala p + p { margin-top: 7px; }

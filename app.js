@@ -653,11 +653,11 @@ function depoimento() {
     <section class="dep">
       <div class="dep__fotos">
         <figure class="dep__foto">
-          <img src="/assets/${antes.arquivo}" alt="${antes.alt}" width="760" height="570" loading="lazy" decoding="async">
+          <img src="/assets/${antes.arquivo}" alt="${antes.alt}" width="680" height="850" loading="lazy" decoding="async">
           <figcaption>Antes</figcaption>
         </figure>
         <figure class="dep__foto">
-          <img src="/assets/${depois.arquivo}" alt="${depois.alt}" width="760" height="570" loading="lazy" decoding="async">
+          <img src="/assets/${depois.arquivo}" alt="${depois.alt}" width="680" height="850" loading="lazy" decoding="async">
           <figcaption>Depois</figcaption>
         </figure>
       </div>

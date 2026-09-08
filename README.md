@@ -175,14 +175,22 @@ sem reescrita. Saíram os exemplos do meio (o primeiro quilo, o primeiro treino)
 e a frase final, que virou o título da tela. O texto completo está no commit
 `c9e15fc`.
 
-As fotos vieram recortadas em **4:3**, e não no 4:5 original. É o que permite a
-largura cheia: em 4:5, duas fotos de 336 px dariam 420 px só de imagem e a tela
-estouraria. Abaixo de 720 px de altura o CSS aperta para 3:2, que corta 11% e
-devolve 28 px.
+As fotos estão em **4:5 integral**, a proporção em que foram tiradas: a pessoa
+aparece inteira, sem recorte.
 
-A tela pede **578 px de 620** no laptop — é a mais apertada do questionário.
-Mexer no tamanho das fotos ou no texto exige rodar a checagem de altura de
-novo.
+> **É a única tela do questionário que rola — e de propósito.** Foto completa
+> em 4:5, largura cheia e altura de uma tela só são incompatíveis: duas fotos
+> de 336 px dariam 420 px apenas de imagem, e com cabeçalho, rodapé e a fala o
+> total vai a 774 px contra 620 disponíveis num laptop. Não caberia nem com
+> texto mínimo.
+>
+> A rolagem aqui custa pouco: não há opção de resposta que possa ficar
+> escondida, e o rodapé faz parte do grid de `100dvh`, então o **Continuar
+> permanece visível** durante a rolagem. Cabe inteira em telas de 1080 px.
+>
+> Para voltar a caber num laptop seria preciso ceder uma das três coisas:
+> recortar a foto, estreitar as fotos (cerca de 440 px no total) ou cortar mais
+> a fala.
 
 **É material real, cedido pela cliente.** Foto de banco nunca pode ocupar
 esse lugar — seria prova social fabricada, e a licença do Pexels proíbe
@@ -262,9 +270,10 @@ com mais de 6 opções vão para duas colunas, e abaixo de 720px de altura um
 modo compacto reduz alturas e espaçamentos — calibrado para a tela mais alta
 (13 opções) caber num laptop de 1366×768.
 
-Duas exceções: o `<details>` "Por que o IMC importa", que rola dentro do
-corpo quando aberto (é o usuário que inicia, e é reversível), e o prontuário,
-que é um documento e rola normalmente — não usa o grid de `100dvh`.
+Três exceções: o `<details>` "Por que o IMC importa", que rola dentro do
+corpo quando aberto (é o usuário que inicia, e é reversível); o prontuário,
+que é um documento e rola normalmente — não usa o grid de `100dvh`; e a tela
+de depoimento, pelo motivo explicado na seção dela.
 
 Atenção ao editar: o corpo é `overflow-y: auto`, então uma tela alta demais
 rola **sem nenhum aviso** — não gera erro. Confira as telas novas a 1366×768.
