@@ -732,6 +732,162 @@ button, input, textarea, select { font: inherit; }
   pointer-events: none;
 }
 
+/* --- telas informativas: corpo de texto --- */
+.cq__text {
+  margin: 14px 0 0;
+  max-width: 58ch;
+  color: var(--copy);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.cq__text + .cq__text { margin-top: 11px; }
+
+/* --- devolutiva de IMC --- */
+.imc {
+  margin-top: 20px;
+  /* Recuo usado pelo calc dos elementos posicionados da regua: garante
+     que o rotulo do pino nao seja cortado quando o IMC esta numa ponta. */
+  --inset: 22px;
+}
+
+.imc__stats {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--cream);
+}
+
+.imc__stats dt {
+  font-family: var(--mono);
+  font-size: 9px;
+  line-height: 1;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.imc__stats dd {
+  margin: 6px 0 0;
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.imc__scale {
+  position: relative;
+  height: 54px;
+  margin-top: 18px;
+}
+
+.imc__track {
+  position: absolute;
+  left: var(--inset);
+  right: var(--inset);
+  top: 24px;
+  height: 8px;
+  border-radius: 999px;
+  /* Gradiente contínuo, sem zonas em cores de semáforo: a régua informa
+     onde o número cai, não emite veredito. As marcas dão a referência. */
+  background: linear-gradient(90deg, var(--sage-wash) 0%, var(--sage) 46%, var(--sage-deep) 100%);
+}
+
+.imc__pin {
+  position: absolute;
+  top: 20px;
+  left: calc(var(--inset) + (100% - var(--inset) * 2) * var(--pos) / 100);
+  translate: -50% 0;
+  width: 3px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--ink);
+  box-shadow: 0 0 0 2.5px var(--paper);
+}
+
+.imc__value {
+  position: absolute;
+  top: 0;
+  left: calc(var(--inset) + (100% - var(--inset) * 2) * var(--pos) / 100);
+  translate: -50% 0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fff;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.4;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.imc__tick {
+  position: absolute;
+  top: 38px;
+  left: calc(var(--inset) + (100% - var(--inset) * 2) * var(--at) / 100);
+  translate: -50% 0;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  line-height: 1.4;
+  color: var(--faint);
+}
+
+.imc__faixa {
+  margin: 6px 0 0;
+  color: var(--copy);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.imc__faixa b { color: var(--ink); font-weight: 700; }
+
+.imc__read {
+  margin: 8px 0 0;
+  color: var(--copy);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.imc__read b { color: var(--ink); font-weight: 700; }
+
+/* Fechado custa 22px. Aberto, rola dentro do .cq__body — a única
+   rolagem do questionário, e é o usuário que a inicia. */
+.imc__why {
+  margin-top: 14px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.imc__why summary {
+  cursor: pointer;
+  color: var(--sage-deep);
+  font-size: 12.5px;
+  font-weight: 700;
+  list-style: none;
+}
+
+.imc__why summary::-webkit-details-marker { display: none; }
+
+.imc__why summary::before {
+  content: "+ ";
+  font-family: var(--mono);
+}
+
+.imc__why[open] summary::before { content: "\2212 "; }
+
+.imc__why p {
+  margin: 10px 0 0;
+  max-width: 58ch;
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+
 /* --- rodape --- */
 .cq__foot {
   border-top: 1px solid var(--line);
@@ -881,6 +1037,11 @@ button, input, textarea, select { font: inherit; }
   .cq__textarea { min-height: 68px; }
   .cq__foot-inner { padding: 11px 0; }
   .btn { min-height: 46px; }
+  .cq__text { margin-top: 11px; font-size: 13px; }
+  .imc { margin-top: 15px; }
+  .imc__stats { padding: 11px 13px; gap: 10px; }
+  .imc__stats dd { font-size: 14px; }
+  .imc__scale { height: 50px; margin-top: 14px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

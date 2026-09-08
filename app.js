@@ -51,6 +51,18 @@ const steps = [
       { key: "email", label: "E-mail", type: "email", placeholder: "você@email.com", required: true },
     ],
   },
+  {
+    field: "info_normalizacao",
+    kind: "info",
+    label: "Contexto",
+    eyebrow: "Contexto",
+    title: "Emagrecer não é só força de vontade.",
+    body: [
+      "Peso corporal depende de hormônios, sono, rotina e histórico de saúde — não apenas de disciplina. É por isso que as próximas perguntas cobrem tanto o seu dia a dia quanto o seu histórico médico.",
+      "Quanto mais preciso o retrato, melhor a indicação que o médico consegue fazer.",
+    ],
+    cta: "Entendi",
+  },
   { field: "sexo_biologico", label: "Sexo biológico", kind: "single", title: "Qual seu sexo biológico?", options: ["Masculino", "Feminino"], auto: true },
   {
     field: "grávida_amamentando",
@@ -93,6 +105,16 @@ const steps = [
     fields: [{ key: "altura", type: "number", placeholder: "Digite sua altura em cm", suffix: "cm", required: true }],
   },
   {
+    field: "insight_imc",
+    kind: "info",
+    label: "Seus números",
+    eyebrow: "Seus números",
+    title: "O que os seus números dizem até aqui.",
+    render: () => renderImc(),
+    /* Só aparece se peso e altura já foram respondidos. */
+    showIf: { when: () => computeImc() !== null },
+  },
+  {
     field: "gordura_acumulada",
     label: "Gordura acumulada",
     kind: "single",
@@ -117,6 +139,17 @@ const steps = [
     auto: true,
   },
   {
+    field: "info_transicao_saude",
+    kind: "info",
+    label: "Próxima etapa",
+    eyebrow: "Próxima etapa",
+    title: "Agora, o seu histórico de saúde.",
+    body: [
+      "As próximas perguntas são sobre diagnósticos, medicamentos em uso e histórico familiar. Algumas parecem distantes do emagrecimento, mas são elas que descartam interações e contraindicações.",
+      "Se não souber responder alguma com precisão, responda o mais próximo do que lembra — há um campo aberto no fim para detalhar.",
+    ],
+  },
+  {
     field: "vontade_incontrolável",
     label: "Vontade de comer",
     kind: "single",
@@ -133,11 +166,23 @@ const steps = [
     auto: true,
   },
   {
+    field: "info_purgacao",
+    kind: "info",
+    label: "Cuidado",
+    eyebrow: "Cuidado",
+    title: "Sobre o que você acabou de relatar.",
+    body: [
+      "Provocar vómito depois de comer — com ou sem laxantes ou diuréticos — traz risco real ao esôfago, aos dentes e ao equilíbrio de potássio e sódio no sangue, e pode alterar o ritmo do coração.",
+      "Isso não interrompe a sua avaliação, mas muda a conduta e o médico vai olhar para esse ponto com atenção. Se quiser falar com alguém agora, o CVV atende de graça, 24 horas, no 188.",
+    ],
+    cta: "Entendi",
+    showIf: { field: "vômito_induzido", equals: "Sim" },
+  },
+  {
     field: "condicoes_restritivas",
     label: "Condicoes restritivas",
     kind: "multiple",
     title: "Você já foi diagnosticado com alguma das condições abaixo?",
-    help: riskWarning,
     options: [
       "Insuficiência renal moderada ou grave",
       "Pancreatite aguda ou crônica",
@@ -149,6 +194,27 @@ const steps = [
       "Nenhuma das anteriores",
     ],
     exclusive: "Nenhuma das anteriores",
+  },
+  {
+    field: "alerta_contraindicacao",
+    kind: "info",
+    label: "Atenção",
+    eyebrow: "Atenção",
+    title: "Uma das condições que você marcou pede cautela.",
+    body: [riskWarning],
+    cta: "Entendi",
+    showIf: {
+      field: "condicoes_restritivas",
+      includesAny: [
+        "Insuficiência renal moderada ou grave",
+        "Pancreatite aguda ou crônica",
+        "Câncer de tireoide (CMT ou carcinoma medular da tireoide)",
+        "Síndrome de neoplasia endócrina múltipla tipo 2 (MEN 2)",
+        "Doença hepática",
+        "Transtorno alimentar (ex: bulimia, anorexia)",
+        "Cirurgia bariátrica",
+      ],
+    },
   },
   {
     field: "diagnosticos_metabolicos",
@@ -237,6 +303,26 @@ const steps = [
       "Nenhuma das anteriores",
     ],
     exclusive: "Nenhuma das anteriores",
+  },
+  {
+    field: "info_validacao",
+    kind: "info",
+    label: "Contexto",
+    eyebrow: "Contexto",
+    title: "Você já tentou pelos caminhos certos.",
+    body: [
+      "Dieta, contagem de calorias e acompanhamento profissional funcionam para muita gente — e quando não funcionam, isso raramente é falta de esforço. A regulação do apetite tem componente hormonal, e é aí que o tratamento medicamentoso pode entrar.",
+      "O médico considera o que você já tentou justamente para não repetir o que não deu resultado.",
+    ],
+    showIf: {
+      field: "tentativas",
+      includesAny: [
+        "Dieta",
+        "Contagem de calorias",
+        "Acompanhamento com nutricionista",
+        "Acompanhamento com nutrólogo/endocrinologista",
+      ],
+    },
   },
   {
     field: "come_estressado",
@@ -334,6 +420,17 @@ const steps = [
     ],
   },
   {
+    field: "info_seguranca",
+    kind: "info",
+    label: "Segurança",
+    eyebrow: "Segurança",
+    title: "Como a prescrição funciona aqui.",
+    body: [
+      "Nenhum medicamento é liberado sem prescrição. Um médico revisa as suas respostas, decide se há indicação e define o princípio ativo, a via de administração e a dose inicial.",
+      "As próximas perguntas são sobre a sua preferência. Elas orientam o médico, mas não substituem a decisão clínica dele.",
+    ],
+  },
+  {
     field: "preferência_tratamento",
     label: "Preferência de tratamento",
     kind: "single",
@@ -363,6 +460,16 @@ const steps = [
     auto: true,
   },
   {
+    field: "info_quase_la",
+    kind: "info",
+    label: "Quase lá",
+    eyebrow: "Quase lá",
+    title: "Faltam duas perguntas.",
+    body: [
+      "A próxima é um campo aberto, para contar qualquer coisa que as perguntas anteriores não cobriram. É opcional — mas é onde o médico costuma encontrar o detalhe que muda a conduta.",
+    ],
+  },
+  {
     field: "informacoes_medico",
     label: "Informacoes adicionais",
     kind: "textarea",
@@ -378,6 +485,14 @@ const INTRO_PATH = "/pages/consultorio-inicio";
 
 steps.forEach((step, index) => {
   step.path = `/pages/consultorio-${index + 1}`;
+});
+
+/* field duplicado quebra o goNext em loop: o findIndex casa com o passo
+   errado e a navegação nunca sai do lugar. Falha alto, na carga. */
+const seenFields = new Set();
+steps.forEach((step) => {
+  if (seenFields.has(step.field)) console.error("field duplicado em steps:", step.field);
+  seenFields.add(step.field);
 });
 
 /* Layout dos passos com muitos campos: evita campo solto em meia coluna. */
@@ -606,6 +721,9 @@ function renderIntro() {
 
 function matchesCondition(condition) {
   if (!condition) return true;
+  /* Escotilha para condições que não são sobre uma resposta gravada,
+     como "o IMC já pode ser calculado". */
+  if (typeof condition.when === "function") return condition.when(getValue);
   const value = getValue(condition.field);
   if (condition.equals !== undefined) return value === condition.equals;
   if (condition.includes !== undefined) return Array.isArray(value) ? value.includes(condition.includes) : value === condition.includes;
@@ -616,12 +734,128 @@ function matchesCondition(condition) {
   return true;
 }
 
+/* Telas que apenas informam e avançam: não gravam resposta e não contam
+   como pergunta no contador. */
+const INTERSTITIAL_KINDS = new Set(["info", "block"]);
+
+function isInterstitial(step) {
+  return INTERSTITIAL_KINDS.has(step.kind);
+}
+
+function isQuestion(step) {
+  return !isInterstitial(step);
+}
+
 function visibleSteps() {
   return steps.filter((step) => matchesCondition(step.showIf));
 }
 
 function donePath() {
   return `/pages/consultorio-${steps.length + 1}`;
+}
+
+/* --------------------------------- IMC --------------------------------- */
+
+const NUM_BR = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
+
+function toNumber(raw) {
+  if (raw === undefined || raw === null) return null;
+  const cleaned = String(raw).replace(",", ".").replace(/[^\d.]/g, "");
+  const value = parseFloat(cleaned);
+  return Number.isFinite(value) ? value : null;
+}
+
+/* O campo pede centímetros, mas tolera quem digitou 1,78. */
+function alturaEmMetros(raw) {
+  const value = toNumber(raw);
+  if (value === null) return null;
+  if (value > 3) return value / 100;
+  if (value >= 0.5) return value;
+  return null;
+}
+
+const FAIXAS_IMC = [
+  [18.5, "abaixo do peso"],
+  [25, "peso normal"],
+  [30, "sobrepeso"],
+  [35, "obesidade grau I"],
+  [40, "obesidade grau II"],
+  [Infinity, "obesidade grau III"],
+];
+
+function faixaImc(imc) {
+  const faixa = FAIXAS_IMC.find(([limite]) => imc < limite);
+  return faixa ? faixa[1] : "";
+}
+
+/* Devolve null se faltar peso ou altura — é o que impede a tela de
+   aparecer com "IMC: NaN" quando alguem entra por link direto. */
+function computeImc() {
+  const peso = toNumber(getValue("peso_atual"));
+  const alturaM = alturaEmMetros(getValue("altura"));
+  if (!peso || !alturaM) return null;
+  const imc = peso / (alturaM * alturaM);
+  if (!Number.isFinite(imc) || imc <= 0) return null;
+  const meta = toNumber(getValue("peso_meta"));
+  const imcAlvo = meta ? meta / (alturaM * alturaM) : null;
+  return {
+    peso,
+    alturaM,
+    imc,
+    faixa: faixaImc(imc),
+    meta,
+    imcAlvo,
+    perdaPct: meta && meta < peso ? ((peso - meta) / peso) * 100 : null,
+  };
+}
+
+/* Domínio fixo da régua. As paradas do gradiente estão como percentuais
+   literais no styles.css, então mudar estes limites exige mexer no CSS. */
+const IMC_MIN = 18;
+const IMC_MAX = 45;
+
+function posImc(imc) {
+  const clamped = Math.min(Math.max(imc, IMC_MIN), IMC_MAX);
+  return ((clamped - IMC_MIN) / (IMC_MAX - IMC_MIN)) * 100;
+}
+
+function renderImc() {
+  const dados = computeImc();
+  if (!dados) return "";
+  const imcTexto = NUM_BR.format(dados.imc);
+  const meta =
+    dados.imcAlvo && dados.perdaPct
+      ? `<p class="imc__read">Sua meta de <b>${NUM_BR.format(dados.meta)} kg</b> levaria o IMC a <b>${NUM_BR.format(
+          dados.imcAlvo
+        )}</b> — uma redução de <b>${NUM_BR.format(dados.perdaPct)}%</b> do peso atual.</p>`
+      : "";
+
+  return `
+    <div class="imc">
+      <dl class="imc__stats">
+        <div><dt>Peso</dt><dd>${NUM_BR.format(dados.peso)} kg</dd></div>
+        <div><dt>Altura</dt><dd>${NUM_BR.format(dados.alturaM * 100)} cm</dd></div>
+        <div><dt>IMC atual</dt><dd>${imcTexto}</dd></div>
+      </dl>
+
+      <div class="imc__scale" style="--pos:${posImc(dados.imc)}">
+        <span class="imc__value">${imcTexto}</span>
+        <span class="imc__pin" aria-hidden="true"></span>
+        <span class="imc__track" aria-hidden="true"></span>
+        <span class="imc__tick" style="--at:${posImc(25)}">25</span>
+        <span class="imc__tick" style="--at:${posImc(30)}">30</span>
+        <span class="imc__tick" style="--at:${posImc(40)}">40</span>
+      </div>
+
+      <p class="imc__faixa">Isso coloca você na faixa de <b>${dados.faixa}</b>.</p>
+      ${meta}
+
+      <details class="imc__why">
+        <summary>Por que o IMC importa nesta avaliação?</summary>
+        <p>O IMC relaciona peso e altura e é um dos dados que o médico usa para definir a conduta. Ele não separa massa magra de gordura nem descreve a sua saúde por inteiro — por isso entra junto com o histórico, os exames e os hábitos que você está relatando aqui. Somente o médico define se há indicação de tratamento.</p>
+      </details>
+    </div>
+  `;
 }
 
 /* ------------------------- campos e opções ------------------------- */
@@ -708,7 +942,14 @@ function renderStep(index) {
   const selected = getValue(step.field);
   const showBack = index > 0;
   const protocolo = getProtocol();
-  const isFields = step.kind !== "single" && step.kind !== "multiple";
+  const interstitial = isInterstitial(step);
+  /* O contador conta perguntas; a barra mede o fluxo inteiro. Barra que
+     congela numa tela informativa parece defeito, e contador que anda sem
+     pergunta nova mente sobre o que falta — então o número desaparece nas
+     telas informativas e dá lugar ao rótulo. */
+  const questionTotal = flow.filter(isQuestion).length;
+  const questionNumber = flow.slice(0, index + 1).filter(isQuestion).length;
+  const showHint = !interstitial && step.kind !== "single" && step.kind !== "multiple";
 
   app.innerHTML = `
     <main class="cq" style="--progress:${progress}">
@@ -718,7 +959,7 @@ function renderStep(index) {
           <div class="cq__meta">
             <span class="cq__protocol">${protocolo.nome}</span>
             <span class="cq__meta-sep" aria-hidden="true"></span>
-            <span>${index + 1}/${flow.length}</span>
+            <span>${interstitial ? step.eyebrow || "Informação" : `${questionNumber}/${questionTotal}`}</span>
           </div>
         </div>
         <div class="cq__bar" role="progressbar" aria-valuemin="1" aria-valuemax="${flow.length}" aria-valuenow="${index + 1}">
@@ -736,9 +977,9 @@ function renderStep(index) {
 
       <footer class="cq__foot">
         <div class="cq__foot-inner">
-          <button class="btn" type="button" aria-disabled="true" data-next>Continuar ${icon("arrow")}</button>
+          <button class="btn" type="button" aria-disabled="${interstitial ? "false" : "true"}" data-next>${step.cta || "Continuar"} ${icon("arrow")}</button>
           ${showBack ? `<button class="cq__back" type="button" data-back>Voltar</button>` : ""}
-          ${isFields ? `<span class="cq__hint">Enter para avançar</span>` : ""}
+          ${showHint ? `<span class="cq__hint">Enter para avançar</span>` : ""}
         </div>
       </footer>
     </main>
@@ -748,6 +989,21 @@ function renderStep(index) {
 }
 
 function renderControls(step, selected) {
+  /* Tela informativa não tem step.fields. Sem esta guarda o .map lá embaixo
+     lança dentro do template de innerHTML e a página inteira fica branca,
+     sem nenhuma mensagem. */
+  if (isInterstitial(step)) {
+    if (typeof step.render === "function") {
+      try {
+        return step.render();
+      } catch (error) {
+        console.error("falha ao renderizar tela informativa:", step.field, error);
+        return "";
+      }
+    }
+    return (step.body || []).map((paragraph) => `<p class="cq__text">${paragraph}</p>`).join("");
+  }
+
   if (step.kind === "single" || step.kind === "multiple") return optionMarkup(step, selected);
 
   const layout = fieldLayout[step.field];
@@ -776,6 +1032,18 @@ function wireStep(index) {
   const nextButton = document.querySelector("[data-next]");
   const backButton = document.querySelector("[data-back]");
 
+  /* Voltar recalcula o fluxo, como o goNext já faz: uma tela condicional
+     pode ter deixado de existir desde que esta foi montada. */
+  backButton?.addEventListener("click", () => {
+    const freshFlow = visibleSteps();
+    const at = freshFlow.findIndex((item) => item.field === step.field);
+    const previous = at > 0 ? freshFlow[at - 1] : null;
+    navigate(previous ? previous.path : INTRO_PATH);
+  });
+
+  /* Tela terminal (kind "block") não tem Continuar. */
+  if (!nextButton) return;
+
   const setEnabled = (enabled) => {
     nextButton.setAttribute("aria-disabled", enabled ? "false" : "true");
   };
@@ -789,7 +1057,13 @@ function wireStep(index) {
   };
 
   nextButton.addEventListener("click", goNext);
-  backButton?.addEventListener("click", () => navigate(flow[index - 1].path));
+
+  /* Precisa vir antes das perguntas: wireFieldsStep desabilitaria o botão
+     numa tela sem inputs, deixando a tela sem saída. */
+  if (isInterstitial(step)) {
+    wireInterstitialStep(nextButton, setEnabled);
+    return;
+  }
 
   if (step.kind === "single" || step.kind === "multiple" || step.kind === "singleWithText") {
     wireOptionsStep(step, goNext, setEnabled);
@@ -797,6 +1071,13 @@ function wireStep(index) {
   }
 
   wireFieldsStep(step, goNext, setEnabled);
+}
+
+function wireInterstitialStep(nextButton, setEnabled) {
+  setEnabled(true);
+  /* preventScroll é essencial: o .cq__body rola, e focar o rodapé sem ele
+     faz a tela saltar. O foco também faz o Enter funcionar sem listener. */
+  nextButton.focus({ preventScroll: true });
 }
 
 function wireOptionsStep(step, goNext, setEnabled) {
@@ -970,14 +1251,32 @@ function render() {
   } else {
     const flow = visibleSteps();
     const index = flow.findIndex((step) => step.path === path);
-    if (index < 0 && !steps.some((step) => step.path === path)) {
+    const rawIndex = steps.findIndex((step) => step.path === path);
+
+    if (index < 0 && rawIndex < 0) {
       history.replaceState({}, "", SELECT_PATH);
       document.title = "Consultório — the men's & the ladies";
       renderSelect();
       return;
     }
+
     document.title = `Avaliação — ${getProtocol().nome}`;
-    renderStep(index >= 0 ? index : 0);
+
+    /* O passo existe mas está invisível agora (condicional que deixou de
+       valer). Recua até o primeiro visível em vez de despejar o usuário
+       na pergunta 1. */
+    if (index < 0) {
+      let at = -1;
+      for (let i = rawIndex; i >= 0 && at < 0; i--) {
+        at = flow.findIndex((step) => step.field === steps[i].field);
+      }
+      const target = at >= 0 ? at : 0;
+      history.replaceState({}, "", flow[target].path);
+      renderStep(target);
+      return;
+    }
+
+    renderStep(index);
   }
 
   document.querySelectorAll("[data-link]").forEach((link) => {
