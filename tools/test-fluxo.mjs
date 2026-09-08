@@ -154,7 +154,104 @@ console.log("\n5. unicidade de field (duplicado quebraria goNext em loop)");
 }
 
 /* ------------------------------------------------------------------ */
-console.log("\n6. fluxo completo até a conclusão");
+console.log("\n6. por que perguntamos (pop-up)");
+{
+  const { doc, window } = boot(rotaDe("sexo_biologico"));
+  const botao = doc.querySelector("[data-why]");
+  const dialog = doc.querySelector("[data-why-dialog]");
+  check("pergunta de sexo tem o botao", !!botao);
+  check("o dialog existe no DOM", !!dialog);
+  check("comeca fechado", dialog ? !dialog.open : false);
+  if (botao && dialog) {
+    botao.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    check("clicar abre", dialog.open === true);
+    dialog.querySelector("[data-why-close]").dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    check("botao de fechar fecha", dialog.open === false);
+  }
+  check("tem a nota de privacidade", !!doc.querySelector(".modal__note"));
+  const outra = boot(rotaDe("alcool"));
+  check("pergunta sem `why` nao ganha botao", !outra.doc.querySelector("[data-why]"));
+}
+
+/* ------------------------------------------------------------------ */
+console.log("\n7. envio de fotos");
+{
+  const { doc } = boot(rotaDe("fotos_corpo"));
+  check("dois cards", doc.querySelectorAll(".ph__card").length === 2);
+  const rotulos = [...doc.querySelectorAll(".ph__label")].map((l) => l.textContent.trim()).join(" | ");
+  check("rotulos corretos", rotulos === "Corpo de frente | Corpo de lado", rotulos);
+  check(
+    "cada card tem camera e arquivo",
+    [...doc.querySelectorAll(".ph__card")].every((c) => c.querySelectorAll("[data-input]").length === 2)
+  );
+  check("botao de camera usa capture", !!doc.querySelector('[capture="environment"]'));
+  check(
+    "aceita so jpg e png",
+    [...doc.querySelectorAll("[data-input]")].every((i) => i.accept === "image/jpeg,image/png")
+  );
+  check("Continuar liberado (foto e opcional)", doc.querySelector("[data-next]").getAttribute("aria-disabled") === "false");
+  check("status inicial", doc.querySelector(".ph__status").textContent.includes("Não enviado"));
+  check("mostra o limite", doc.querySelector(".ph__hint").textContent.includes("5 MB"));
+
+  const comFoto = boot(rotaDe("fotos_corpo"), {
+    corpo_frente: { rotulo: "Corpo de frente", valor: { nome: "frente.jpg", bytes: 1048576, tipo: "image/jpeg" } },
+  });
+  check("card com foto fica marcado", !!comFoto.doc.querySelector(".ph__card--done"));
+  check(
+    "mostra nome e tamanho",
+    comFoto.doc.querySelector(".ph__card--done .ph__status").textContent.includes("frente.jpg")
+  );
+  check("oferece remover", !!comFoto.doc.querySelector("[data-remove]"));
+  check("sem IndexedDB nao quebra", comFoto.erros.length === 0, comFoto.erros.join(" | "));
+}
+
+/* ------------------------------------------------------------------ */
+console.log("\n8. prontuario");
+{
+  const estado = {
+    nome: { rotulo: "Nome", valor: "Maria Silva" },
+    cpf: { rotulo: "CPF", valor: "123.456.789-09" },
+    sexo_biologico: { rotulo: "Sexo biológico", valor: "Feminino" },
+    peso_atual: { rotulo: "Peso atual", valor: "92" },
+    peso_meta: { rotulo: "Meta de peso", valor: "78" },
+    altura: { rotulo: "Altura", valor: "178" },
+    condicoes_atuais: { rotulo: "Condicoes atuais", valor: ["Depressão", "Apneia do sono"] },
+    corpo_frente: { rotulo: "Corpo de frente", valor: { nome: "frente.jpg", bytes: 524288, tipo: "image/jpeg" } },
+  };
+  const totalSteps = boot("/pages/consultorio-1").window.__api.steps.length;
+  const rotaFim = "/pages/consultorio-" + (totalSteps + 1);
+  const { doc, window, erros } = boot(rotaFim, estado);
+
+  check("renderiza o prontuario", !!doc.querySelector(".pr"));
+  check("usa o primeiro nome no titulo", doc.querySelector(".pr__titulo").textContent.includes("Maria"));
+  check("agrupa em secoes", doc.querySelectorAll(".pr__secao").length >= 4);
+  check(
+    "cada linha tem check",
+    doc.querySelectorAll(".pr__linha .pr__check").length === doc.querySelectorAll(".pr__linha").length
+  );
+  check("lista multipla escolha junta", doc.body.textContent.includes("Depressão, Apneia do sono"));
+  check("calcula o IMC nas medidas", !!doc.querySelector(".pr__linha--calc") && doc.body.textContent.includes("29"));
+  check("mostra a foto anexada", doc.body.textContent.includes("frente.jpg"));
+  check("avisa da foto que falta", doc.querySelector(".pr__aviso").textContent.toLowerCase().includes("lado"));
+  check("nao imprime undefined nem null", !doc.body.textContent.includes("undefined") && !doc.body.textContent.includes("null"));
+  check("tem botao de checkout", doc.querySelector(".pr__rodape .btn").getAttribute("href").includes("checkout"));
+  check("nao auto-redireciona", !doc.body.textContent.includes("Abrindo o checkout"));
+  check("sem erro de runtime", erros.length === 0, erros.join(" | "));
+
+  const editar = [...doc.querySelectorAll("[data-editar]")].find((b) => b.dataset.editar);
+  check("secao tem link de editar", !!editar);
+  if (editar) {
+    editar.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    check("editar navega com a flag de revisao", window.location.search.includes("revisao"));
+    check(
+      "o CTA muda para salvar e voltar",
+      doc.querySelector("[data-next]").textContent.trim().startsWith("Salvar e voltar")
+    );
+  }
+}
+
+/* ------------------------------------------------------------------ */
+console.log("\n9. fluxo completo ate a conclusao");
 
 const FILL = {
   text: (id) => (id === "cpf" ? "12345678909" : "Teste Silva"),
@@ -171,7 +268,7 @@ async function percorrer(sexo) {
   let guarda = 0;
 
   while (guarda++ < 90) {
-    if (doc.querySelector(".done")) break;
+    if (doc.querySelector(".pr")) break;
     const rota = window.location.pathname;
     const info = !!doc.querySelector(".imc, .cq__text");
 
@@ -218,7 +315,7 @@ async function percorrer(sexo) {
     visitadas.push({ rota, info });
   }
 
-  return { visitadas, fim: !!doc.querySelector(".done"), travou: null, erros, window };
+  return { visitadas, fim: !!doc.querySelector(".pr"), travou: null, erros, window };
 }
 
 for (const sexo of ["Masculino", "Feminino"]) {

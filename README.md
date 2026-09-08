@@ -10,8 +10,8 @@ Fonts e as respostas ficam em `localStorage`.
 | --- | --- |
 | `/pages/consultorio` | Seleção de protocolo |
 | `/pages/consultorio-inicio` | Como funciona a avaliação |
-| `/pages/consultorio-1` … `-42` | Passos do fluxo (o total visível varia com as condicionais) |
-| `/pages/consultorio-43` | Conclusão e checkout |
+| `/pages/consultorio-1` … `-43` | Passos do fluxo (o total visível varia com as condicionais) |
+| `/pages/consultorio-44` | Prontuário e checkout |
 
 Rota desconhecida cai na seleção de protocolo. Rota de um passo que existe
 mas está invisível (condicional que deixou de valer) recua até o passo
@@ -48,6 +48,7 @@ qual:
 | --- | --- |
 | `single`, `multiple`, `singleWithText` | opções |
 | `fields`, `number`, `textarea` | campos |
+| `photos` | envio de fotos; Continuar nasce habilitado porque é opcional |
 | `info` | só informa; Continuar nasce habilitado e nada é gravado |
 | `block` | tela terminal, sem Continuar (previsto, ainda não usado) |
 
@@ -88,6 +89,61 @@ A régua é CSS puro. O domínio é fixo (`IMC_MIN` 18, `IMC_MAX` 45) e as
 posições entram como números sem unidade em `--pos` e `--at`, consumidos por
 `calc()` no `styles.css`. Mudar o domínio exige mexer no CSS.
 
+## Por que perguntamos
+
+Qualquer passo com a chave `why` ganha um botão "Por que perguntamos?" abaixo
+do texto de apoio, que abre um `<dialog>` com a explicação:
+
+```js
+why: {
+  titulo: "Por que perguntamos?",
+  body: ["parágrafo", "…"],
+  nota: "Suas respostas não são usadas para publicidade.",
+}
+```
+
+Hoje só a pergunta de sexo atribuído usa. `<dialog>` nativo dá ESC, foco
+preso e backdrop de graça; há um fallback por atributo `open` para navegador
+sem suporte.
+
+## Fotos do corpo
+
+O passo `fotos_corpo` (`kind: "photos"`) tem dois slots — frente e lado — cada
+um com "Usar câmera" (`capture="environment"`) e "Escolher arquivo". Aceita
+JPG e PNG até 5 MB e mostra pré-visualização, nome e tamanho.
+
+**As fotos são opcionais**: o Continuar nunca trava.
+
+Os arquivos vão para o **IndexedDB** (`tl-consulta-fotos`), não para o
+`localStorage`: um JPEG de 3 MB em base64 passa de 4 MB e estouraria a cota
+de 5 MB do domínio inteiro, levando as respostas junto. O `localStorage`
+guarda só os metadados (nome, bytes, tipo), que é o que o prontuário precisa
+ler de forma síncrona. Sem IndexedDB disponível (modo privado restrito), o
+card avisa e o fluxo continua.
+
+> **Falta o envio.** O projeto não tem backend: as fotos e as respostas ficam
+> no navegador de quem preencheu, e o fluxo termina no checkout da Shopify.
+> Nada chega à equipe médica ainda. Para isso é preciso um endpoint que
+> receba o payload do `localStorage` mais os blobs do IndexedDB.
+
+## Prontuário
+
+A tela final (`renderDone`) monta um prontuário a partir do que foi
+respondido, agrupado pelo array `PRONTUARIO`: cada seção lista os campos que
+tiveram resposta, com marca de conferido, e traz um "Editar".
+
+O "Editar" navega para a pergunta com `?revisao=1`. Nesse modo o CTA vira
+"Salvar e voltar" e o `goNext` retorna ao prontuário em vez de seguir o
+fluxo — é o que evita repetir 40 telas para corrigir um peso digitado
+errado.
+
+Campo sem resposta não aparece. A seção de medidas ganha o IMC calculado, e
+há um aviso quando falta alguma foto.
+
+O prontuário **não** redireciona sozinho para o checkout. A tela anterior
+fazia isso em 5 segundos; com um documento para revisar, redirecionar por
+conta própria atropela justamente o que a tela existe para permitir.
+
 ## Cabe na primeira tela
 
 Cada passo cabe sem rolagem: a tela é um grid de `100dvh` com cabeçalho,
@@ -96,8 +152,9 @@ com mais de 6 opções vão para duas colunas, e abaixo de 720px de altura um
 modo compacto reduz alturas e espaçamentos — calibrado para a tela mais alta
 (13 opções) caber num laptop de 1366×768.
 
-A única exceção é o `<details>` "Por que o IMC importa", que rola dentro do
-corpo quando aberto. É o usuário que inicia, e é reversível.
+Duas exceções: o `<details>` "Por que o IMC importa", que rola dentro do
+corpo quando aberto (é o usuário que inicia, e é reversível), e o prontuário,
+que é um documento e rola normalmente — não usa o grid de `100dvh`.
 
 Atenção ao editar: o corpo é `overflow-y: auto`, então uma tela alta demais
 rola **sem nenhum aviso** — não gera erro. Confira as telas novas a 1366×768.

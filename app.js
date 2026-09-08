@@ -63,7 +63,25 @@ const steps = [
     ],
     cta: "Entendi",
   },
-  { field: "sexo_biologico", label: "Sexo biológico", kind: "single", title: "Qual seu sexo biológico?", options: ["Masculino", "Feminino"], auto: true },
+  {
+    field: "sexo_biologico",
+    label: "Sexo biológico",
+    kind: "single",
+    title: "Qual o sexo atribuído a você ao nascer?",
+    help: "Perguntamos para adaptar as questões de segurança. Isso não define a sua identidade de gênero.",
+    options: ["Feminino", "Masculino"],
+    auto: true,
+    /* Basta adicionar `why` em qualquer passo para ele ganhar o botão e o
+       pop-up de explicação. */
+    why: {
+      titulo: "Por que perguntamos?",
+      body: [
+        "O sexo atribuído ao nascer muda a avaliação clínica: parte das contraindicações e das doses depende dele, e algumas perguntas de segurança só se aplicam a parte das pessoas — gravidez e amamentação, por exemplo.",
+        "Algumas condições podem tornar o tratamento online inadequado. Todas as suas respostas são revisadas por um médico antes de qualquer prescrição.",
+      ],
+      nota: "Suas respostas não são usadas para publicidade.",
+    },
+  },
   {
     field: "grávida_amamentando",
     label: "Gravidez ou amamentação",
@@ -478,6 +496,14 @@ const steps = [
     optional: true,
   },
   { field: "tem_exame", label: "Exames", kind: "single", title: "Você já tem algum exame?", options: ["Sim", "Não"], auto: true },
+  {
+    field: "fotos_corpo",
+    kind: "photos",
+    label: "Fotos do corpo",
+    title: "Se quiser, envie duas fotos do seu corpo.",
+    help: "É opcional. A foto ajuda o médico a avaliar composição corporal e a comparar a sua evolução durante o tratamento. Use roupa leve, boa luz e o corpo inteiro no quadro.",
+    optional: true,
+  },
 ];
 
 const SELECT_PATH = "/pages/consultorio";
@@ -505,7 +531,6 @@ const fieldLayout = {
 };
 
 const app = document.querySelector("#app");
-let doneTimer;
 let autoTimer;
 
 /* ------------------------------ estado ------------------------------ */
@@ -588,6 +613,13 @@ function icon(type) {
     form: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3.4H6.8a2 2 0 0 0-2 2v13.2a2 2 0 0 0 2 2h10.4a2 2 0 0 0 2-2V5.4a2 2 0 0 0-2-2H15"></path><rect x="9" y="2" width="6" height="3.4" rx="1.3"></rect><path d="M8.6 11h5.2"></path><path d="M8.6 15h6.8"></path></svg>`,
     stethoscope: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5.4 3v4.6a4.2 4.2 0 0 0 8.4 0V3"></path><path d="M5.4 3H3.8"></path><path d="M13.8 3h1.6"></path><path d="M9.6 11.8v2.4a4.6 4.6 0 0 0 9.2 0v-1.1"></path><circle cx="18.8" cy="10.9" r="2.1"></circle></svg>`,
     box: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.6 3.4 7v10l8.6 4.4L20.6 17V7z"></path><path d="M3.4 7 12 11.4 20.6 7"></path><path d="M12 11.4v10"></path></svg>`,
+    camera: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.6A2 2 0 0 1 5 6.6h2.2l1.2-2h7.2l1.2 2H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><circle cx="12" cy="13" r="3.6"></circle></svg>`,
+    folder: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.4a2 2 0 0 1 2-2h3.6l2 2.4H19a2 2 0 0 1 2 2v8.8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>`,
+    image: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3.4" y="4.4" width="17.2" height="15.2" rx="2.2"></rect><circle cx="9" cy="10" r="1.7"></circle><path d="m4.2 17.4 4.6-4.2 3.4 3 2.8-2.4 4.8 4"></path></svg>`,
+    info: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5.4"></path><path d="M12 7.8h.01"></path></svg>`,
+    chat: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20.4 12.2c0 4-3.8 7.2-8.4 7.2a9.6 9.6 0 0 1-2.6-.35L4.6 20.8l1.3-3.6A6.9 6.9 0 0 1 3.6 12.2C3.6 8.2 7.4 5 12 5s8.4 3.2 8.4 7.2Z"></path></svg>`,
+    shield: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.8 4.8 5.6v6c0 4.2 3 7.6 7.2 9.6 4.2-2 7.2-5.4 7.2-9.6v-6z"></path><path d="m8.8 12.2 2.2 2.2 4.2-4.4"></path></svg>`,
+    close: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6.4 6.4l11.2 11.2"></path><path d="M17.6 6.4 6.4 17.6"></path></svg>`,
   };
   return icons[type];
 }
@@ -933,6 +965,454 @@ function formatCpf(text) {
     .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
 }
 
+/* ------------------------------- fotos ------------------------------- */
+
+const PHOTO_DB = "tl-consulta-fotos";
+const PHOTO_STORE = "fotos";
+const PHOTO_MAX_BYTES = 5 * 1024 * 1024;
+const PHOTO_TYPES = ["image/jpeg", "image/png"];
+
+const PHOTO_SLOTS = [
+  { key: "corpo_frente", label: "Corpo de frente", silhueta: "frente" },
+  { key: "corpo_lado", label: "Corpo de lado", silhueta: "lado" },
+];
+
+/* As fotos vão para o IndexedDB, não para o localStorage: um JPEG de 3 MB
+   em base64 passa de 4 MB e estoura a cota de 5 MB do localStorage inteiro,
+   levando as respostas junto. O localStorage guarda só os metadados, que é
+   o que o prontuário precisa ler de forma síncrona. */
+/* Modo privado restrito e alguns navegadores nao expoem IndexedDB. Sem ele
+   nao da para guardar a foto, mas o passo e opcional: degrada com aviso no
+   card em vez de derrubar o fluxo. */
+function photoStorageAvailable() {
+  try {
+    return typeof indexedDB !== "undefined" && indexedDB !== null;
+  } catch {
+    return false;
+  }
+}
+
+function openPhotoDb() {
+  return new Promise((resolve, reject) => {
+    if (!photoStorageAvailable()) {
+      reject(new Error("IndexedDB indisponivel"));
+      return;
+    }
+    const request = indexedDB.open(PHOTO_DB, 1);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(PHOTO_STORE)) db.createObjectStore(PHOTO_STORE);
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function photoTx(mode, acao) {
+  return openPhotoDb().then(
+    (db) =>
+      new Promise((resolve, reject) => {
+        const tx = db.transaction(PHOTO_STORE, mode);
+        const pedido = acao(tx.objectStore(PHOTO_STORE));
+        tx.oncomplete = () => {
+          db.close();
+          resolve(pedido && "result" in pedido ? pedido.result : undefined);
+        };
+        tx.onerror = () => {
+          db.close();
+          reject(tx.error);
+        };
+      })
+  );
+}
+
+function savePhoto(key, blob) {
+  return photoTx("readwrite", (store) => store.put(blob, key));
+}
+
+function loadPhoto(key) {
+  return photoTx("readonly", (store) => store.get(key));
+}
+
+function removePhoto(key) {
+  return photoTx("readwrite", (store) => store.delete(key));
+}
+
+function photoMeta(key) {
+  return getValue(key) || null;
+}
+
+function formatBytes(bytes) {
+  if (bytes >= 1024 * 1024) return `${NUM_BR.format(bytes / 1024 / 1024)} MB`;
+  return `${Math.round(bytes / 1024)} KB`;
+}
+
+function silhueta(tipo) {
+  if (tipo === "lado") {
+    return `<svg viewBox="0 0 48 96" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="26" cy="12" r="7"></circle>
+      <path d="M26 19c-5 2-8 6-8 11v10c0 3 1 5 2 8l1 12"></path>
+      <path d="M18 30c-3 1-4 4-4 7v9"></path>
+      <path d="M21 60l-1 14 1 12"></path>
+      <path d="M26 60l2 14-1 12"></path>
+    </svg>`;
+  }
+  return `<svg viewBox="0 0 48 96" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <circle cx="24" cy="12" r="7"></circle>
+    <path d="M24 19c-6 0-11 3-12 8l-2 13"></path>
+    <path d="M24 19c6 0 11 3 12 8l2 13"></path>
+    <path d="M12 27v20h24V27"></path>
+    <path d="M16 47l-1 27"></path>
+    <path d="M32 47l1 27"></path>
+    <path d="M24 47v27"></path>
+  </svg>`;
+}
+
+function photoCard(slot) {
+  const meta = photoMeta(slot.key);
+  const enviada = !!meta;
+
+  return `
+    <div class="ph__card${enviada ? " ph__card--done" : ""}" data-slot="${slot.key}">
+      <div class="ph__thumb" data-thumb>
+        ${enviada ? "" : `<span class="ph__silhueta">${silhueta(slot.silhueta)}</span>`}
+      </div>
+      <h2 class="ph__label">${slot.label}</h2>
+
+      <label class="btn ph__btn">
+        ${icon("camera")} Usar câmera
+        <input type="file" accept="image/jpeg,image/png" capture="environment" data-input hidden>
+      </label>
+      <label class="btn ph__btn ph__btn--ghost">
+        ${icon("folder")} Escolher arquivo
+        <input type="file" accept="image/jpeg,image/png" data-input hidden>
+      </label>
+
+      <p class="ph__status" data-status>
+        <span class="ph__dot"></span>
+        ${enviada ? `${meta.nome} · ${formatBytes(meta.bytes)}` : "Não enviado"}
+      </p>
+      ${enviada ? `<button class="ph__remove" type="button" data-remove>Remover</button>` : ""}
+    </div>
+  `;
+}
+
+function photosMarkup() {
+  return `
+    <div class="ph">
+      <div class="ph__grid">${PHOTO_SLOTS.map(photoCard).join("")}</div>
+      <p class="ph__hint">${icon("image")} JPG ou PNG · até 5 MB cada</p>
+    </div>
+  `;
+}
+
+function wirePhotosStep(step, goNext, setEnabled) {
+  /* Fotos são opcionais: o Continuar nunca fica travado. */
+  setEnabled(true);
+
+  const cards = [...document.querySelectorAll("[data-slot]")];
+
+  const pintar = async (card) => {
+    const key = card.dataset.slot;
+    const thumb = card.querySelector("[data-thumb]");
+    const meta = photoMeta(key);
+    if (!meta || !photoStorageAvailable()) return;
+    try {
+      const blob = await loadPhoto(key);
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      thumb.innerHTML = `<img src="${url}" alt="Pré-visualização de ${key.replace("_", " ")}">`;
+      thumb.querySelector("img").addEventListener("load", () => URL.revokeObjectURL(url), { once: true });
+    } catch (error) {
+      console.error("falha ao ler a foto guardada:", key, error);
+    }
+  };
+
+  const erro = (card, texto) => {
+    const status = card.querySelector("[data-status]");
+    card.classList.add("ph__card--erro");
+    card.classList.remove("ph__card--done");
+    status.innerHTML = `<span class="ph__dot"></span>${texto}`;
+  };
+
+  cards.forEach((card) => {
+    pintar(card);
+
+    card.querySelectorAll("[data-input]").forEach((input) => {
+      input.addEventListener("change", async () => {
+        const file = input.files?.[0];
+        input.value = "";
+        if (!file) return;
+
+        const key = card.dataset.slot;
+        if (!photoStorageAvailable()) {
+          erro(card, "Este navegador nao permite guardar a foto.");
+          return;
+        }
+        if (!PHOTO_TYPES.includes(file.type)) {
+          erro(card, "Formato não aceito. Envie JPG ou PNG.");
+          return;
+        }
+        if (file.size > PHOTO_MAX_BYTES) {
+          erro(card, `Arquivo de ${formatBytes(file.size)}. O limite é 5 MB.`);
+          return;
+        }
+
+        try {
+          await savePhoto(key, file);
+        } catch (error) {
+          console.error("falha ao guardar a foto:", key, error);
+          erro(card, "Não foi possível guardar a foto neste navegador.");
+          return;
+        }
+
+        const slot = PHOTO_SLOTS.find((item) => item.key === key);
+        saveAnswer(key, slot.label, { nome: file.name, bytes: file.size, tipo: file.type });
+        navigate(window.location.pathname);
+      });
+    });
+
+    card.querySelector("[data-remove]")?.addEventListener("click", async () => {
+      const key = card.dataset.slot;
+      try {
+        await removePhoto(key);
+      } catch (error) {
+        console.error("falha ao remover a foto:", key, error);
+      }
+      clearAnswer(key);
+      navigate(window.location.pathname);
+    });
+  });
+}
+
+/* ------------------------- por que perguntamos ------------------------- */
+
+function whyButton(step) {
+  if (!step.why) return "";
+  return `<button class="cq__why" type="button" data-why>${icon("info")} Por que perguntamos?</button>`;
+}
+
+function whyDialog(step) {
+  if (!step.why) return "";
+  const { titulo, body, nota } = step.why;
+  return `
+    <dialog class="modal" data-why-dialog aria-labelledby="why-titulo">
+      <div class="modal__box">
+        <button class="modal__close" type="button" data-why-close aria-label="Fechar">${icon("close")}</button>
+        <span class="modal__icon">${icon("chat")}</span>
+        <h2 class="modal__title" id="why-titulo">${titulo || "Por que perguntamos?"}</h2>
+        ${(body || []).map((p) => `<p class="modal__text">${p}</p>`).join("")}
+        ${nota ? `<p class="modal__note">${icon("shield")} ${nota}</p>` : ""}
+      </div>
+    </dialog>
+  `;
+}
+
+function wireWhy() {
+  const dialog = document.querySelector("[data-why-dialog]");
+  if (!dialog) return;
+
+  /* <dialog> nativo tem suporte amplo, mas em navegador antigo o atributo
+     open ainda mostra o conteudo -- sem backdrop modal, e funcional. */
+  const abrir = () => {
+    if (typeof dialog.showModal === "function") dialog.showModal();
+    else dialog.setAttribute("open", "");
+  };
+  const fechar = () => {
+    if (typeof dialog.close === "function") dialog.close();
+    else dialog.removeAttribute("open");
+  };
+
+  document.querySelector("[data-why]")?.addEventListener("click", abrir);
+  dialog.querySelector("[data-why-close]")?.addEventListener("click", fechar);
+  /* Clique no backdrop fecha: o dialog ocupa a tela toda, então um clique
+     que aterrissa nele (e não na caixa) veio de fora. */
+  dialog.addEventListener("click", (event) => {
+    if (event.target === dialog) fechar();
+  });
+}
+
+/* ----------------------------- prontuário ----------------------------- */
+
+const REVISAO_FLAG = "revisao";
+
+function emRevisao() {
+  return new URLSearchParams(window.location.search).has(REVISAO_FLAG);
+}
+
+const PRONTUARIO = [
+  { titulo: "Identificação", campos: ["nome", "cpf", "nascimento", "telefone", "email"] },
+  { titulo: "Perfil", campos: ["sexo_biologico", "grávida_amamentando"] },
+  { titulo: "Medidas e meta", campos: ["peso_atual", "peso_meta", "altura", "meta_perda"], imc: true },
+  {
+    titulo: "Hábitos",
+    campos: [
+      "gordura_acumulada",
+      "horas_sono",
+      "frequencia_treino",
+      "vontade_incontrolável",
+      "come_estressado",
+      "alcool",
+      "vômito_induzido",
+    ],
+  },
+  {
+    titulo: "Histórico de saúde",
+    campos: [
+      "condicoes_restritivas",
+      "diagnosticos_metabolicos",
+      "visao_diabetes",
+      "visao_diabetes_descricao",
+      "historico_familiar",
+      "condicoes_medicas",
+      "condicoes_atuais",
+      "transtorno_alimentar",
+      "transtorno_alimentar_qual",
+      "saude_mental",
+      "saude_mental_qual",
+    ],
+  },
+  {
+    titulo: "Medicamentos e alergias",
+    campos: [
+      "medicamentos_diabetes",
+      "toma_medicamento",
+      "medicamentos_descricao",
+      "medicamento_suplemento_30d",
+      "medicamento_suplemento_30d_quais",
+      "semaglutida_tirzepatida",
+      "semaglutida_tirzepatida_relato",
+      "alergia",
+      "alergia_qual",
+    ],
+  },
+  { titulo: "Tentativas anteriores", campos: ["tempo_tentando", "tentativas"] },
+  { titulo: "Preferências", campos: ["preferência_tratamento", "via_tratamento", "dosagem_baixa"] },
+  { titulo: "Anexos", campos: ["tem_exame", "corpo_frente", "corpo_lado"], anexos: true },
+  { titulo: "Observações", campos: ["informacoes_medico"] },
+];
+
+/* Um campo pode ser o próprio passo (sexo_biologico) ou um input dentro de
+   um passo de campos (nome vive em identificacao). */
+function pathDoCampo(key) {
+  const direto = steps.find((step) => step.field === key);
+  if (direto) return direto.path;
+  const dono = steps.find((step) => (step.fields || []).some((field) => field.key === key));
+  return dono ? dono.path : null;
+}
+
+function valorLegivel(key) {
+  const registro = readState()[key];
+  if (!registro) return null;
+  const valor = registro.valor;
+  if (Array.isArray(valor)) return valor.length ? valor.join(", ") : null;
+  if (valor && typeof valor === "object") {
+    /* metadados de foto */
+    return valor.nome ? `${valor.nome} · ${formatBytes(valor.bytes)}` : null;
+  }
+  const texto = String(valor).trim();
+  return texto.length ? texto : null;
+}
+
+function rotuloDoCampo(key) {
+  const registro = readState()[key];
+  if (registro?.rotulo && registro.rotulo !== "x") return registro.rotulo;
+  const slot = PHOTO_SLOTS.find((item) => item.key === key);
+  if (slot) return slot.label;
+  const dono = steps.find((step) => (step.fields || []).some((field) => field.key === key));
+  const campo = dono?.fields.find((field) => field.key === key);
+  return campo?.label || dono?.label || key;
+}
+
+function linhaProntuario(key) {
+  const valor = valorLegivel(key);
+  if (!valor) return "";
+  return `
+    <div class="pr__linha">
+      <span class="pr__check" aria-hidden="true">${icon("check")}</span>
+      <span class="pr__campo">${rotuloDoCampo(key)}</span>
+      <span class="pr__valor">${valor}</span>
+    </div>
+  `;
+}
+
+function renderDone() {
+  const estado = readState();
+  const respondidas = Object.keys(estado).length;
+  const nome = valorLegivel("nome");
+  const dados = computeImc();
+
+  const secoes = PRONTUARIO.map((secao) => {
+    const linhas = secao.campos.map(linhaProntuario).filter(Boolean);
+
+    const extra =
+      secao.imc && dados
+        ? `
+      <div class="pr__linha pr__linha--calc">
+        <span class="pr__check" aria-hidden="true">${icon("check")}</span>
+        <span class="pr__campo">IMC calculado</span>
+        <span class="pr__valor">${NUM_BR.format(dados.imc)} · ${dados.faixa}</span>
+      </div>`
+        : "";
+
+    if (!linhas.length && !extra) return "";
+
+    const alvo = secao.campos.map(pathDoCampo).find(Boolean);
+    const editar = alvo ? `<button class="pr__editar" type="button" data-editar="${alvo}">Editar</button>` : "";
+
+    return `
+      <section class="pr__secao">
+        <header class="pr__cabeca">
+          <h2>${secao.titulo}</h2>
+          ${editar}
+        </header>
+        ${linhas.join("")}
+        ${extra}
+      </section>
+    `;
+  })
+    .filter(Boolean)
+    .join("");
+
+  const semFoto = PHOTO_SLOTS.filter((slot) => !photoMeta(slot.key));
+  const avisoFoto = semFoto.length
+    ? `<p class="pr__aviso">${icon("image")} ${
+        semFoto.length === 2 ? "Nenhuma foto enviada" : "Falta a foto de " + semFoto[0].label.toLowerCase()
+      }. As fotos são opcionais, mas ajudam na avaliação. <button class="pr__link" type="button" data-editar="${
+        steps.find((step) => step.kind === "photos")?.path || ""
+      }">Enviar agora</button></p>`
+    : "";
+
+  app.innerHTML = `
+    <main class="pr">
+      <div class="pr__inner">
+        <header class="pr__topo">
+          <span class="pr__selo">${icon("check")}</span>
+          <p class="eyebrow">Avaliação concluída</p>
+          <h1 class="pr__titulo">Prontuário${nome ? " de " + nome.split(" ")[0] : ""}</h1>
+          <p class="pr__sub">${respondidas} ${
+            respondidas === 1 ? "resposta registrada" : "respostas registradas"
+          }. Revise antes de seguir — depois disso, quem lê é a equipe médica.</p>
+        </header>
+
+        ${avisoFoto}
+        ${secoes}
+
+        <footer class="pr__rodape">
+          <a class="btn" href="${CHECKOUT_URL}">Ir para o checkout ${icon("arrow")}</a>
+          ${privacyNote()}
+        </footer>
+      </div>
+    </main>
+  `;
+
+  app.querySelectorAll("[data-editar]").forEach((botao) => {
+    const destino = botao.dataset.editar;
+    if (!destino) return;
+    botao.addEventListener("click", () => navigate(`${destino}?${REVISAO_FLAG}=1`));
+  });
+}
+
 /* --------------------- 3 · tela de pergunta --------------------- */
 
 function renderStep(index) {
@@ -949,7 +1429,10 @@ function renderStep(index) {
      telas informativas e dá lugar ao rótulo. */
   const questionTotal = flow.filter(isQuestion).length;
   const questionNumber = flow.slice(0, index + 1).filter(isQuestion).length;
-  const showHint = !interstitial && step.kind !== "single" && step.kind !== "multiple";
+  /* Fotos são opcionais, então o Continuar também nasce liberado. */
+  const startsEnabled = interstitial || step.kind === "photos";
+  const showHint = !interstitial && step.kind !== "single" && step.kind !== "multiple" && step.kind !== "photos";
+  const revisao = emRevisao();
 
   app.innerHTML = `
     <main class="cq" style="--progress:${progress}">
@@ -971,21 +1454,26 @@ function renderStep(index) {
         <div class="cq__body-inner">
           <h1 class="cq__question">${step.title}</h1>
           ${step.help ? `<p class="cq__help">${step.help}</p>` : ""}
+          ${whyButton(step)}
           ${renderControls(step, selected)}
         </div>
       </div>
 
       <footer class="cq__foot">
         <div class="cq__foot-inner">
-          <button class="btn" type="button" aria-disabled="${interstitial ? "false" : "true"}" data-next>${step.cta || "Continuar"} ${icon("arrow")}</button>
+          <button class="btn" type="button" aria-disabled="${startsEnabled ? "false" : "true"}" data-next>${
+            revisao ? "Salvar e voltar" : step.cta || "Continuar"
+          } ${icon("arrow")}</button>
           ${showBack ? `<button class="cq__back" type="button" data-back>Voltar</button>` : ""}
           ${showHint ? `<span class="cq__hint">Enter para avançar</span>` : ""}
         </div>
       </footer>
+      ${whyDialog(step)}
     </main>
   `;
 
   wireStep(index);
+  wireWhy();
 }
 
 function renderControls(step, selected) {
@@ -1003,6 +1491,8 @@ function renderControls(step, selected) {
     }
     return (step.body || []).map((paragraph) => `<p class="cq__text">${paragraph}</p>`).join("");
   }
+
+  if (step.kind === "photos") return photosMarkup();
 
   if (step.kind === "single" || step.kind === "multiple") return optionMarkup(step, selected);
 
@@ -1050,6 +1540,12 @@ function wireStep(index) {
 
   const goNext = () => {
     if (nextButton.getAttribute("aria-disabled") === "true") return;
+    /* Vindo do "Editar" do prontuário, salvar volta para lá em vez de
+       repetir o resto do fluxo. */
+    if (emRevisao()) {
+      navigate(donePath());
+      return;
+    }
     const freshFlow = visibleSteps();
     const currentIndex = freshFlow.findIndex((item) => item.field === step.field);
     const nextStep = freshFlow[currentIndex + 1];
@@ -1062,6 +1558,11 @@ function wireStep(index) {
      numa tela sem inputs, deixando a tela sem saída. */
   if (isInterstitial(step)) {
     wireInterstitialStep(nextButton, setEnabled);
+    return;
+  }
+
+  if (step.kind === "photos") {
+    wirePhotosStep(step, goNext, setEnabled);
     return;
   }
 
@@ -1206,34 +1707,9 @@ function wireFieldsStep(step, goNext, setEnabled) {
 
 /* ------------------------- 4 · conclusão ------------------------- */
 
-function renderDone() {
-  app.innerHTML = `
-    <main class="done">
-      <div class="done__inner">
-        <span class="done__seal">${icon("check")}</span>
-        <h1>Recebemos as suas respostas</h1>
-        <p>Um especialista entra em contato com o resultado da avaliação médica. Abrindo o checkout em <b data-count>5</b>s.</p>
-        <a class="btn" href="${CHECKOUT_URL}">Ir para o checkout ${icon("arrow")}</a>
-      </div>
-    </main>
-  `;
-
-  let remaining = 5;
-  const count = document.querySelector("[data-count]");
-  doneTimer = window.setInterval(() => {
-    remaining -= 1;
-    count.textContent = String(Math.max(remaining, 0));
-    if (remaining <= 0) {
-      window.clearInterval(doneTimer);
-      window.location.href = CHECKOUT_URL;
-    }
-  }, 1000);
-}
-
 /* ------------------------------ router ------------------------------ */
 
 function render() {
-  if (doneTimer) window.clearInterval(doneTimer);
   /* Cancela auto-avanco pendente: sem isso, um clique em Continuar dentro
      da janela de 220ms deixa o timer do passo anterior navegar depois. */
   if (autoTimer) window.clearTimeout(autoTimer);
