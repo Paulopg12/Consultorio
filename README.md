@@ -69,7 +69,9 @@ qual:
   devolve HTML — é o equivalente a uma tela customizada. `render()` roda
   dentro de `try/catch`, porque uma exceção ali aconteceria dentro do
   template de `innerHTML` e apagaria a página inteira.
-- **`eyebrow`** substitui o contador no cabeçalho.
+- **`eyebrow`** substitui o contador no cabeçalho. Sem ele, a tela não mostra
+  rótulo nenhum — nem o separador, que ficaria solto ao lado do nome do
+  protocolo. É o caso de `info_depoimento`.
 - **Nunca use `auto`** numa tela informativa: não há opção para clicar.
 
 As telas informativas são **só texto**. Uma tentativa com ilustração de banco

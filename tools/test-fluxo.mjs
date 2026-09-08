@@ -297,7 +297,9 @@ console.log("\n9. depoimento dentro do questionario");
   });
   const passo = window.__api.visibleSteps().find((s) => s.path === window.location.pathname);
   check("a tela certa abriu", passo && passo.field === "info_depoimento", passo && passo.field);
-  check("o contador da lugar ao rotulo", doc.querySelector(".cq__meta span:last-child").textContent.trim() === "Quem já passou por aqui");
+  check("nao mostra rotulo no cabecalho", !doc.querySelector(".cq__meta").textContent.includes("Quem já passou"));
+  check("nem o separador solto", doc.querySelectorAll(".cq__meta .cq__meta-sep").length === 0);
+  check("o protocolo continua no cabecalho", doc.querySelector(".cq__protocol").textContent.trim() === "Emagrecimento");
   check("Continuar nasce habilitado", doc.querySelector("[data-next]").getAttribute("aria-disabled") === "false");
 
   const dep = doc.querySelector(".dep");

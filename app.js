@@ -131,7 +131,6 @@ const steps = [
     field: "info_depoimento",
     kind: "info",
     label: "Depoimento",
-    eyebrow: "Quem já passou por aqui",
     title: "Comemore o seu dia 1.",
     /* Logo depois da devolutiva de IMC: a pessoa acabou de ver o próprio
        número, e é quando o relato de quem passou pelo mesmo pesa mais. */
@@ -1476,6 +1475,9 @@ function renderStep(index) {
   const questionTotal = flow.filter(isQuestion).length;
   const questionNumber = flow.slice(0, index + 1).filter(isQuestion).length;
   /* Fotos são opcionais, então o Continuar também nasce liberado. */
+  /* Tela informativa sem eyebrow nao mostra rotulo nenhum -- nem o
+     separador, que ficaria solto ao lado do nome do protocolo. */
+  const rotuloMeta = interstitial ? step.eyebrow || "" : questionNumber + "/" + questionTotal;
   const startsEnabled = interstitial || step.kind === "photos";
   const revisao = emRevisao();
 
@@ -1486,8 +1488,7 @@ function renderStep(index) {
           ${wordmark()}
           <div class="cq__meta">
             <span class="cq__protocol">${protocolo.nome}</span>
-            <span class="cq__meta-sep" aria-hidden="true"></span>
-            <span>${interstitial ? step.eyebrow || "Informação" : `${questionNumber}/${questionTotal}`}</span>
+            ${rotuloMeta ? `<span class="cq__meta-sep" aria-hidden="true"></span><span>${rotuloMeta}</span>` : ""}
           </div>
         </div>
         <div class="cq__bar" role="progressbar" aria-valuemin="1" aria-valuemax="${flow.length}" aria-valuenow="${index + 1}">
