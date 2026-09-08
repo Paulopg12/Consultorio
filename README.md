@@ -30,8 +30,12 @@ Definidos no array `protocols`, no topo do `app.js`:
 - **Cabelo, Força, Sono, Ejaculação precoce, Disfunção erétil** — `status: "breve"`,
   entram na grade com selo "Em breve", esmaecidos e não clicáveis
 
-Os seis aparecem numa grade de 3 por linha, com cards de mesmo tamanho. Só o
-card aberto é um link; `resumo` e `specs` do protocolo são exibidos na tela
+Os seis aparecem numa grade de 3 por linha no desktop e 2 em tablet. **No
+celular fica um por linha**, e os cinco “em breve” passam a linha horizontal
+com o selo à direita: em duas colunas os nomes longos quebravam em três
+linhas apertadas, e seis cards em bloco dariam uma página longa demais.
+
+Só o card aberto é um link; `resumo` e `specs` do protocolo são exibidos na tela
 seguinte ("como funciona"), não na seleção.
 
 Para abrir um protocolo novo: troque o `status` para `"aberto"` e preencha
@@ -126,8 +130,12 @@ O PNG original era contorno preto fino com interior branco, e **desaparecia**
 ao ser reduzido de 1774 px para ~96 px de altura: o traço virava fração de
 pixel e o interior branco não contrastava com o creme do card. Os arquivos
 atuais foram gerados a partir do **canal alpha** do original, preenchido com
-uma cor sólida (, 3.43:1 sobre o creme). Assim a silhueta é visível
+uma cor sólida (`#7a8a6f`, 3.43:1 sobre o creme). Assim a silhueta é visível
 em qualquer tamanho.
+
+A folga vertical fica **dentro do PNG** (34 px em cima e embaixo): na primeira
+versão o corpo ia de ponta a ponta do canvas e os pés eram comidos pelo
+`border-radius` do card. Ao trocar as imagens, preserve essa margem.
 
 Os dois foram normalizados pela **altura** — 300×460, corpo centralizado —
 para frente e lado aparecerem na mesma escala; o de lado só ocupa menos
@@ -243,10 +251,14 @@ como fundo de botão.
 
 Tipografia:
 
-- **Ezra** — só em título. Aplicada em 7 seletores: `.wordmark`, `.ps__title`,
-  `.ps__card-name`, `.ci__title`, `.ci__step h3`, `.cq__question` e `.done h1`.
-  Ficaram embutidos apenas os pesos 600 e 800, os únicos alcançados por esses
-  seletores; os pesos 400 e 700 foram removidos e cortaram 88 KB do CSS.
+- **Ezra** — só em título, no peso **700**. O 800 foi abandonado: somado ao
+  tracking apertado, travava a leitura. O tracking também foi afrouxado, de
+  -0.035em para -0.018em nos títulos grandes.
+
+  Ficam embutidos apenas os pesos **600** (o “&” do wordmark) e **700**, os
+  únicos que algum seletor pede. Cada peso custa cerca de 44 KB em base64,
+  então vale conferir se algum ficou órfão depois de mexer em título —
+  `grep -c "@font-face" styles.css` deve bater com os pesos em uso.
 - **Montserrat** — todo o resto (corpo, opções, campos, botões), via Google
   Fonts com `Arial, Helvetica` no fallback. É a única dependência externa do
   projeto; se o Google Fonts não responder, a página cai em Arial.
