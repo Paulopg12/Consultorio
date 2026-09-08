@@ -38,7 +38,7 @@ linhas apertadas, e seis cards em bloco dariam uma página longa demais.
 Só o card aberto é um link. As `specs` do protocolo aparecem na tela seguinte
 ("como funciona"), não na seleção. O campo `resumo` continua suportado, mas o
 de emagrecimento está sem ele: o texto sobre análogos de GLP-1 foi removido a
-pedido, e a intro usa o depoimento nesse espaço.
+pedido.
 
 Para abrir um protocolo novo: troque o `status` para `"aberto"` e preencha as
 `specs`. O fluxo de perguntas hoje é compartilhado — o array
