@@ -205,7 +205,11 @@ console.log("\n1d. perguntas encadeadas na mesma tela");
   doisPrimeiros.forEach((b) => b.dispatchEvent(new col.window.MouseEvent("click", { bubbles: true })));
   check("aceita mais de um efeito", doisPrimeiros.every((b) => b.getAttribute("aria-pressed") === "true"));
   check("escolher um efeito abre a caixa", !col.doc.querySelector('[data-field-key="colateral_relato"]').hidden);
-  check("a alergia saiu do fluxo", !col.window.__api.steps.some((s) => s.field === "alergia"));
+  check(
+    "a pergunta de alergia virou lista por ativo",
+    col.window.__api.steps.find((s) => s.field === "alergia")?.kind === "multiple"
+  );
+  check("e a caixa de texto antiga saiu", !col.window.__api.steps.some((s) => (s.fields || []).some((f) => f.key === "alergia_qual")));
   check("a via de tratamento saiu do fluxo", !col.window.__api.steps.some((s) => s.field === "via_tratamento"));
   check("a tela de validacao saiu do fluxo", !col.window.__api.steps.some((s) => s.field === "info_validacao"));
 }
@@ -294,6 +298,30 @@ console.log("\n1g. contraindicacao encerra o questionario");
     historico_familiar: marcadas(["Pancreatite"]),
   });
   check("pancreatite em familiar nao encerra", !familiarPancreatite.doc.querySelector(".blk"));
+
+  /* Alergia: por ativo, nao um "Sim" solto. */
+  const alergiaAtivo = boot(rotaDe("bloqueio_alergia"), { alergia: marcadas(["Semaglutida"]) });
+  check("alergia a semaglutida encerra", !!alergiaAtivo.doc.querySelector(".blk"));
+  check("e diz o motivo certo", alergiaAtivo.doc.querySelector(".blk__motivo").textContent.includes("semaglutida"));
+  const alergiaTirze = boot(rotaDe("bloqueio_alergia"), { alergia: marcadas(["Tirzepatida"]) });
+  check("alergia a tirzepatida encerra", !!alergiaTirze.doc.querySelector(".blk"));
+  const alergiaOutra = boot(rotaDe("bloqueio_alergia"), {
+    alergia: marcadas(["Outra alergia (medicamento ou alimento)", "Liraglutida"]),
+  });
+  check("alergia a outra coisa nao encerra", !alergiaOutra.doc.querySelector(".blk"));
+
+  /* A pergunta voltou, e com a caixa de descricao. */
+  const perguntaAlergia = boot(rotaDe("alergia"));
+  check("a pergunta de alergia existe de novo", perguntaAlergia.doc.querySelector(".cq__question").textContent.includes("alergia"));
+  check("permite marcar mais de uma", !!perguntaAlergia.doc.querySelector(".cq__options--multi"));
+  const campoOutra = perguntaAlergia.doc.querySelector('[data-field-key="alergia_outra"]');
+  check("a caixa de descricao comeca escondida", !!campoOutra && campoOutra.hidden);
+  const outra = [...perguntaAlergia.doc.querySelectorAll("[data-option]")].find((o) => o.value.startsWith("Outra"));
+  outra.dispatchEvent(new perguntaAlergia.window.MouseEvent("click", { bubbles: true }));
+  check(
+    "marcar Outra abre a descricao",
+    !perguntaAlergia.doc.querySelector('[data-field-key="alergia_outra"]').hidden
+  );
 
   /* Prontuario fechado por link direto enquanto o bloqueio vale. */
   const totalSteps = boot("/pages/consultorio-1").window.__api.steps.length;
@@ -619,8 +647,13 @@ async function percorrer(sexo) {
     const opts = [...doc.querySelectorAll("[data-option]")];
     if (opts.length) {
       /* Resposta que encerra o questionario travaria o percurso na tela
-         terminal — que e justamente o que ela deve fazer. */
-      const bloqueia = new Set(Object.values(window.__api.BLOQUEIOS).flatMap((b) => b.valores));
+         terminal — que e justamente o que ela deve fazer. O filtro e por
+         campo: "Sim" bloqueia na gravidez e nao nas outras perguntas. */
+      const bloqueia = new Set(
+        Object.values(window.__api.BLOQUEIOS)
+          .filter((b) => b.field === campo)
+          .flatMap((b) => b.valores)
+      );
       let alvo = opts.find((o) => o.getAttribute("aria-pressed") !== "true" && !bloqueia.has(o.value));
       const q = doc.querySelector(".cq__question")?.textContent || "";
       if (q.includes("Qual seu sexo")) alvo = opts.find((o) => o.value === sexo);

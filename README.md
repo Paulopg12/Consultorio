@@ -15,8 +15,8 @@ desenhado do logo nem o espaçamento do original. O CSS controla só a altura
 | --- | --- |
 | `/pages/consultorio` | Seleção de protocolo |
 | `/pages/consultorio-inicio` | Como funciona a avaliação |
-| `/pages/consultorio-1` … `-41` | Passos do fluxo (o total visível varia com as condicionais) |
-| `/pages/consultorio-42` | Prontuário e checkout |
+| `/pages/consultorio-1` … `-43` | Passos do fluxo (o total visível varia com as condicionais) |
+| `/pages/consultorio-44` | Prontuário e checkout |
 
 Rota desconhecida cai na seleção de protocolo. Rota de um passo que existe
 mas está invisível (condicional que deixou de valer) recua até o passo
@@ -133,6 +133,12 @@ com o ícone de alerta e peso de nota, não de erro.
 apoio. É assim que "Menos de 5% do peso corporal" ganha "até 5 kg" embaixo
 sem que trocar o peso depois desmarque a resposta já gravada.
 
+### Caixa de texto numa pergunta de opção (`fields`)
+
+`fields` com `revealValues` funciona em `singleWithText`, `single` e
+`multiple` — o markup sai do mesmo `camposNinho()`. É assim que a alergia
+"Outra" (múltipla escolha) abre a descrição.
+
 ### Perguntas encadeadas na mesma tela (`subgrupos`)
 
 Um passo `singleWithText` pode trazer `subgrupos`: perguntas de opção que
@@ -194,11 +200,21 @@ pergunta que a dispara:
 | `bloqueio_gravidez` | gravidez ou amamentação = Sim | `grávida_amamentando` |
 | `bloqueio_tireoide` | CMT ou MEN 2 no próprio histórico | `condicoes_restritivas` |
 | `bloqueio_familiar` | CMT ou MEN 2 em familiar de primeiro grau | `historico_familiar` |
+| `bloqueio_alergia` | alergia à semaglutida ou à tirzepatida | `alergia` |
 
 O corte é **só o da bula**, de propósito. Pancreatite, doença renal ou
 hepática, diabetes tipo 1, câncer ativo, transtorno alimentar, vômito induzido
 e cirurgia bariátrica continuam no fluxo: são caso de avaliação médica, não de
 corte automático.
+
+A pergunta de alergia é **por ativo** (`kind: "multiple"`: Semaglutida,
+Tirzepatida, Liraglutida, "Outra alergia", "Não tenho alergia"), e não um
+"Sim" solto como era antes. Um "Sim" genérico não serve para bloquear —
+alergia a dipirona encerraria o questionário de graça — e também não serve
+para liberar, porque alergia ao ativo do protocolo é contraindicação direta.
+Só semaglutida e tirzepatida bloqueiam: **liraglutida não**, é outra molécula
+e entra como histórico para o médico. "Outra alergia" revela uma caixa de
+descrição (`alergia_outra`) e segue o fluxo.
 
 O prontuário também fica fechado enquanto o bloqueio vale — `bloqueioAtivo()`
 é consultado no roteador, então link direto para a rota final volta para a

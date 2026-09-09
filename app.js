@@ -450,6 +450,35 @@ const steps = [
     auto: true,
   },
   {
+    field: "alergia",
+    label: "Alergia",
+    kind: "multiple",
+    title: "Você tem alergia a algum destes medicamentos?",
+    help: "Marque todas que se aplicam. Se a sua alergia é a outro medicamento ou a alimento, marque a última opção e descreva.",
+    /* Por ativo, e nao um "Sim" solto: alergia a dipirona nao pode encerrar o
+       questionario, e alergia ao ativo do protocolo nao pode passar. */
+    options: ["Semaglutida", "Tirzepatida", "Liraglutida", "Outra alergia (medicamento ou alimento)", "Não tenho alergia"],
+    exclusive: "Não tenho alergia",
+    fields: [
+      {
+        key: "alergia_outra",
+        label: "Qual alergia?",
+        type: "textarea",
+        placeholder: "Qual medicamento ou alimento, e o que acontece",
+        revealValues: ["Outra alergia (medicamento ou alimento)"],
+      },
+    ],
+  },
+  {
+    field: "bloqueio_alergia",
+    kind: "block",
+    label: "Avaliação encerrada",
+    eyebrow: "Avaliação encerrada",
+    title: "Este tratamento não é indicado para você.",
+    render: () => bloqueioMarkup(BLOQUEIOS.alergia.motivo),
+    showIf: { when: () => bloqueado("alergia") },
+  },
+  {
     field: "colateral",
     label: "Efeitos colaterais",
     kind: "singleWithText",
@@ -589,6 +618,13 @@ const BLOQUEIOS = {
     field: "historico_familiar",
     valores: ["Carcinoma medular da tireoide (CMT)", "Síndrome MEN 2"],
     motivo: "Carcinoma medular da tireoide ou MEN 2 em familiar de primeiro grau",
+  },
+  /* Só os dois ativos que este protocolo prescreve. Liraglutida fica de fora
+     de propósito: é outra molécula, entra como histórico para o médico. */
+  alergia: {
+    field: "alergia",
+    valores: ["Semaglutida", "Tirzepatida"],
+    motivo: "Alergia à semaglutida ou à tirzepatida",
   },
 };
 
@@ -1177,6 +1213,17 @@ function optionMarkup(step, selected) {
   `;
 }
 
+/* Caixa de texto pendurada numa pergunta de opção — vale para escolha
+   única e para múltipla (a alergia "Outra" abre a descrição). */
+function camposNinho(step) {
+  if (!step.fields?.length) return "";
+  return `
+    <div class="cq__field cq__field--nested">
+      ${step.fields.map((field) => fieldMarkup(field, step)).join("")}
+    </div>
+  `;
+}
+
 /* Subgrupo: pergunta encadeada dentro da mesma tela. Fica entre as opcoes
    principais e os campos de texto, e cada um pode ser revelado pela resposta
    principal (`reveal.values`) ou por outro subgrupo (`reveal.from`). */
@@ -1582,6 +1629,8 @@ const PRONTUARIO = [
       "semaglutida_tirzepatida_qual",
       "semaglutida_tirzepatida_emagreceu",
       "semaglutida_tirzepatida_relato",
+      "alergia",
+      "alergia_outra",
       "colateral",
       "colateral_quais",
       "colateral_relato",
@@ -1900,7 +1949,8 @@ function renderControls(step, selected) {
 
   if (step.kind === "photos") return photosMarkup(step);
 
-  if (step.kind === "single" || step.kind === "multiple") return `${optionMarkup(step, selected)}${slotsMarkup(step)}`;
+  if (step.kind === "single" || step.kind === "multiple")
+    return `${optionMarkup(step, selected)}${subgruposMarkup(step)}${slotsMarkup(step)}${camposNinho(step)}`;
 
   const layout = fieldLayout[step.field];
   const ordered = layout?.order
@@ -1912,9 +1962,7 @@ function renderControls(step, selected) {
     return `
       ${optionMarkup(step, selected)}
       ${subgruposMarkup(step)}
-      <div class="cq__field cq__field--nested">
-        ${step.fields.map((field) => fieldMarkup(field, step)).join("")}
-      </div>
+      ${camposNinho(step)}
     `;
   }
 
