@@ -381,104 +381,107 @@ button, input, textarea, select { font: inherit; }
   width: 100%;
   max-width: 760px;
   margin: 0 auto;
-  padding: 48px 28px 60px;
+  padding: 60px 28px 76px;
 }
 
 .ci__title {
   font-family: var(--font-display);
-  margin: 14px 0 0;
+  margin: 16px 0 0;
   color: var(--ink);
-  font-size: clamp(26px, 3.6vw, 38px);
-  line-height: 1.06;
+  font-size: clamp(30px, 4.6vw, 46px);
+  line-height: 1.04;
   font-weight: 700;
-  letter-spacing: -0.018em;
+  letter-spacing: -0.022em;
 }
 
 .ci__desc {
-  margin: 14px 0 0;
-  max-width: 52ch;
-  color: var(--copy);
-  font-size: 14.5px;
-  line-height: 1.6;
+  margin: 16px 0 0;
+  max-width: 44ch;
+  color: var(--muted);
+  font-size: 15.5px;
+  line-height: 1.62;
 }
 
-/* Etapas como cards com icone. Sem reguas divisorias: eram elas que
-   davam o aspecto duro na versao anterior. */
+/* Etapas numa lista aberta, sem caixa: a moldura e o trilho vertical que
+   liga os icones. Cinco cards com borda, fundo e sombra brigavam entre si e
+   com o botao; sem eles sobra o que interessa -- numero, titulo e frase. */
 .ci__track {
-  margin: 32px 0 0;
+  margin: 44px 0 0;
   padding: 0;
   list-style: none;
   display: grid;
-  gap: 10px;
+  gap: 0;
   counter-reset: etapa;
 }
 
 .ci__step {
   display: grid;
-  grid-template-columns: 46px minmax(0, 1fr);
+  grid-template-columns: 44px minmax(0, 1fr);
   align-items: start;
-  gap: 18px;
-  padding: 20px 22px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  background: var(--cream);
-  box-shadow: 0 1px 2px rgba(22, 17, 15, 0.02), 0 12px 26px -22px rgba(22, 17, 15, 0.18);
+  gap: 20px;
+  padding: 0 0 30px;
 }
 
+.ci__step:last-child { padding-bottom: 0; }
+
+/* Quadrado arredondado, e nao circulo: o circulo com borda de 1px lia como
+   marcador de lista, o tile le como icone. */
 .ci__icon {
-  width: 46px;
-  height: 46px;
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
-  border-radius: 50%;
-  background: var(--paper);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fff, var(--cream));
   color: var(--sage-deep);
 }
 
 .ci__icon svg {
-  width: 21px;
-  height: 21px;
-  stroke-width: 1.6;
+  width: 20px;
+  height: 20px;
+  stroke-width: 1.5;
 }
 
 .ci__etapa {
   display: block;
-  margin: 0 0 5px;
+  margin: 0 0 6px;
   font-family: var(--mono);
-  font-size: 9px;
+  font-size: 10px;
   line-height: 1;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--faint);
 }
 
+/* So o numero: "ETAPA 01" repetido cinco vezes era mais rotulo do que
+   informacao. */
 .ci__etapa::before {
   counter-increment: etapa;
-  content: "Etapa " counter(etapa, decimal-leading-zero);
+  content: counter(etapa, decimal-leading-zero);
 }
 
 .ci__step h3 {
   font-family: var(--font-display);
   margin: 0;
   color: var(--ink);
-  font-size: 16px;
-  line-height: 1.25;
+  font-size: 18.5px;
+  line-height: 1.26;
   font-weight: 700;
-  letter-spacing: -0.012em;
+  letter-spacing: -0.018em;
 }
 
 .ci__step p {
-  margin: 6px 0 0;
-  max-width: 52ch;
-  color: var(--copy);
-  font-size: 13.5px;
-  line-height: 1.55;
+  margin: 7px 0 0;
+  max-width: 46ch;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.58;
 }
 
 .ci__when {
   display: inline-block;
-  margin-top: 10px;
-  padding: 4px 9px;
+  margin-top: 12px;
+  padding: 5px 10px;
   border-radius: 999px;
   background: var(--sage-wash);
   font-family: var(--mono);
@@ -489,7 +492,7 @@ button, input, textarea, select { font: inherit; }
 }
 
 .ci__cta {
-  margin-top: 30px;
+  margin-top: 44px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -852,45 +855,77 @@ button, input, textarea, select { font: inherit; }
 
 .ci__main .eyebrow,
 .ci__title,
-.ci__desc,
-.ci__cta {
-  animation: ci-sobe 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+.ci__desc {
+  animation: ci-sobe 760ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .ci__main .eyebrow { animation-delay: 0ms; }
-.ci__title { animation-delay: 60ms; }
-.ci__desc { animation-delay: 110ms; }
+.ci__title { animation-delay: 70ms; }
+.ci__desc { animation-delay: 140ms; }
 
-/* Depois dos cinco cards (150ms + 5 x 70ms). */
-.ci__cta { animation-delay: 500ms; }
-
-.ci__step {
-  position: relative;
-  animation: ci-sobe 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  animation-delay: calc(150ms + var(--i, 0) * 70ms);
+.ci__step,
+.ci__cta {
+  animation: ci-sobe 760ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(200ms + var(--i, 0) * 90ms);
 }
+
+.ci__step { position: relative; }
 
 .ci__icon {
-  animation: ci-icone 460ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
-  animation-delay: calc(230ms + var(--i, 0) * 70ms);
-  box-shadow: 0 0 0 1px var(--line), 0 1px 2px rgba(22, 17, 15, 0.04);
+  animation: ci-icone 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(260ms + var(--i, 0) * 90ms);
+  box-shadow: inset 0 0 0 1px rgba(22, 17, 15, 0.06), 0 1px 2px rgba(22, 17, 15, 0.05),
+    0 10px 20px -14px rgba(22, 17, 15, 0.2);
 }
 
-/* A linha atravessa o vao ate o card seguinte: left casa com o centro do
-   circulo (22px de padding + 23px de raio). */
+/* Trilho fino ligando os tiles: left casa com o centro do tile de 44px. */
 .ci__step:not(:last-child)::after {
   content: "";
   position: absolute;
-  left: 44px;
-  top: 72px;
-  bottom: -10px;
-  width: 2px;
-  border-radius: 2px;
-  background: linear-gradient(to bottom, rgba(140, 156, 129, 0.5), rgba(231, 226, 218, 0.9));
+  left: 22px;
+  top: 56px;
+  bottom: 8px;
+  width: 1px;
+  background: linear-gradient(to bottom, rgba(140, 156, 129, 0.45), rgba(22, 17, 15, 0.07));
   transform-origin: top;
-  animation: ci-linha 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  animation-delay: calc(350ms + var(--i, 0) * 70ms);
+  animation: ci-linha 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(320ms + var(--i, 0) * 90ms);
 }
+
+/* Entrada por scroll, quando o JS assume (ver revelarNoScroll): a animacao
+   do CSS sai de cena e quem manda e a transicao. */
+.ci--espera,
+.ci--espera .ci__icon,
+.ci--espera::after {
+  animation: none;
+}
+
+.ci--espera {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 760ms cubic-bezier(0.16, 1, 0.3, 1), transform 760ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ci--espera .ci__icon {
+  opacity: 0;
+  transform: scale(0.82);
+  transition: opacity 620ms cubic-bezier(0.16, 1, 0.3, 1), transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: 90ms;
+}
+
+.ci--espera::after {
+  transform: scaleY(0);
+  transition: transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: 140ms;
+}
+
+.ci--dentro,
+.ci--dentro .ci__icon {
+  opacity: 1;
+  transform: none;
+}
+
+.ci--dentro::after { transform: scaleY(1); }
 
 /* Tela terminal de contraindicacao: sem Continuar, so Voltar. */
 .blk { margin-top: 20px; }
@@ -1745,12 +1780,14 @@ button, input, textarea, select { font: inherit; }
 
   .ci__bar-inner { height: 56px; padding: 0 20px; }
   .ci__main { padding: 32px 20px 44px; }
-  .ci__step { grid-template-columns: 38px minmax(0, 1fr); gap: 14px; padding: 16px 16px; }
-  .ci__step:not(:last-child)::after { left: 34px; top: 60px; }
+  .ci__step { grid-template-columns: 40px minmax(0, 1fr); gap: 16px; padding: 0 0 26px; }
+  .ci__step:not(:last-child)::after { left: 20px; top: 52px; }
+  .ci__step h3 { font-size: 17px; }
+  .ci__track { margin-top: 34px; }
   .dep { gap: 12px; margin-top: 12px; }
   .dep__fala p:first-child { font-size: 14.5px; }
   .dep__fala p { font-size: 12.5px; }
-  .ci__icon { width: 38px; height: 38px; }
+  .ci__icon { width: 40px; height: 40px; border-radius: 13px; }
   .ci__icon svg { width: 18px; height: 18px; }
   .ci__cta { align-self: stretch; }
   .ci__cta .btn { align-self: stretch; width: 100%; }

@@ -970,7 +970,7 @@ function renderIntro() {
           ${etapas
             .map(
               ([nomeIcone, titulo, texto, quando], i) => `
-            <li class="ci__step" style="--i:${i}">
+            <li class="ci__step" style="--i:${i}" data-revela>
               <span class="ci__icon" aria-hidden="true">${icon(nomeIcone)}</span>
               <div>
                 <span class="ci__etapa"></span>
@@ -983,7 +983,7 @@ function renderIntro() {
             .join("")}
         </ol>
 
-        <div class="ci__cta">
+        <div class="ci__cta" style="--i:5">
           <a class="btn" href="${steps[0].path}" data-link>Começar avaliação ${icon("arrow")}</a>
           ${privacyNote()}
         </div>
@@ -992,6 +992,41 @@ function renderIntro() {
   `;
 
   app.querySelector("[data-to-select]")?.addEventListener("click", () => navigate(SELECT_PATH));
+  revelarNoScroll();
+}
+
+/* No celular as duas ultimas etapas nascem fora da tela, e a cascata do CSS
+   ja teria acabado quando a pessoa chega nelas. Com IntersectionObserver cada
+   item entra quando aparece.
+
+   A classe `ci--espera` (que esconde) so e aplicada depois de o observador
+   existir: em navegador sem IntersectionObserver nada fica escondido, a
+   cascata do CSS resolve. */
+function revelarNoScroll() {
+  if (typeof IntersectionObserver === "undefined") return;
+  const itens = [...app.querySelectorAll("[data-revela]")];
+  if (!itens.length) return;
+
+  const observador = new IntersectionObserver(
+    (entradas, self) => {
+      entradas.forEach((entrada) => {
+        if (!entrada.isIntersecting) return;
+        entrada.target.classList.add("ci--dentro");
+        self.unobserve(entrada.target);
+      });
+    },
+    { rootMargin: "0px 0px -10% 0px" }
+  );
+
+  itens.forEach((item) => {
+    item.classList.add("ci--espera");
+    observador.observe(item);
+  });
+
+  /* Rede de seguranca: aviso do observador que nao chega (aconteceu com o
+     rootMargin em porcentagem) deixaria a etapa invisivel para sempre. Tela
+     sem conteudo e muito pior que tela sem animacao. */
+  window.setTimeout(() => itens.forEach((item) => item.classList.add("ci--dentro")), 1600);
 }
 
 /* ------------------------ fluxo condicional ------------------------ */

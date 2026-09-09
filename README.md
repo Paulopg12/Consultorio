@@ -54,6 +54,31 @@ protocolo liberado, acompanhamento semanal com a nutricionista e
 acompanhamento médico até o fim do protocolo. As duas últimas trazem o rótulo
 de recorrência ("TODA SEMANA", "DURANTE O TRATAMENTO") no lugar de prazo.
 
+### Como a lista de etapas é desenhada
+
+Sem caixa: nem borda, nem fundo, nem sombra. Cinco cards com moldura brigavam
+entre si e com o botão; o que organiza a lista agora é o **trilho vertical de
+1px** ligando os ícones, o espaço entre os itens e a hierarquia de tipo. O
+ícone vive num quadrado arredondado de 44px (o círculo com borda lia como
+marcador de lista), e o rótulo virou só o número — "ETAPA 01" cinco vezes era
+mais rótulo do que informação.
+
+A entrada é por **scroll**, não por carga: `revelarNoScroll()` usa
+IntersectionObserver para revelar cada etapa quando ela aparece, porque no
+celular as duas últimas nascem fora da tela e a cascata do CSS já teria
+acabado. Três cuidados que valem a leitura:
+
+- a classe que esconde (`ci--espera`) só é aplicada **depois** de o
+  observador existir. Navegador sem IntersectionObserver não esconde nada e
+  cai na cascata do CSS;
+- um `setTimeout` de 1,6s revela o que sobrou. Tela sem conteúdo é muito pior
+  que tela sem animação, e isso já aconteceu: com `rootMargin` em
+  porcentagem o aviso do observador não chegou ao botão e ele ficou invisível;
+- o CTA ficou **fora** do observador de propósito, pelo mesmo motivo.
+
+O easing é `cubic-bezier(0.16, 1, 0.3, 1)` em 760ms, com 90ms de atraso entre
+os itens — desaceleração longa, sem overshoot.
+
 Para abrir um protocolo novo: troque o `status` para `"aberto"` e preencha as
 `specs`. O fluxo de perguntas hoje é compartilhado — o array
 `steps` é o de emagrecimento. Um segundo protocolo aberto precisa do próprio
