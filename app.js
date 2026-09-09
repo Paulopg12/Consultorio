@@ -940,13 +940,13 @@ function renderIntro() {
     ],
     [
       "chat",
-      "Acompanhamento com a nutricionista",
-      "Você fala com a nutricionista do time: ajuste da alimentação, dúvidas do dia a dia e o que fazer para o resultado se sustentar.",
+      "Acompanhamento semanal com a nutricionista",
+      "Toda semana você fala com a nutricionista do time: ajuste da alimentação, dúvidas do dia a dia e o que fazer para o resultado se sustentar.",
       "TODA SEMANA",
     ],
     [
       "shield",
-      "Acompanhamento médico contínuo",
+      "Acompanhamento médico até o fim do protocolo",
       "O médico reavalia a sua resposta ao tratamento, ajusta a dose quando for preciso e orienta sobre efeitos colaterais.",
       "DURANTE O TRATAMENTO",
     ],

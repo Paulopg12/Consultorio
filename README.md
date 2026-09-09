@@ -56,36 +56,23 @@ contínuo. As duas últimas trazem o rótulo de recorrência ("TODA SEMANA",
 
 ### Como a lista de etapas é desenhada
 
-**Duas colunas, 2 + 2 + 1**, com a quinta etapa atravessando a largura toda
-(`grid-column: 1 / -1`) e, só ela, o ícone ao lado do texto em vez de acima.
-Em coluna única a seção passava da dobra no desktop e empurrava o botão para
-fora da tela.
+Uma coluna, uma etapa em cima da outra, **sem caixa**: nem borda, nem fundo,
+nem sombra. O que organiza a lista é o **trilho vertical de 1px** ligando os
+ícones, o espaço entre os itens e a hierarquia de tipo. O ícone vive num
+quadrado arredondado de 44px (o círculo com borda lia como marcador de lista),
+e o rótulo é só o número — "ETAPA 01" cinco vezes era mais rótulo do que
+informação.
 
-Cada etapa é um **card** de fundo creme, cantos de 20px, sem borda desenhada —
-só um `inset` de 1px a 4,5% de opacidade e uma sombra rasa. Uma versão sem
-caixa nenhuma foi testada e não funcionou: em duas colunas, sem moldura, os
-textos ficam soltos e a quinta etapa parece órfã.
+Duas variações foram testadas e **rejeitadas**, ficam registradas para nao
+serem tentadas de novo:
 
-Três detalhes de acabamento que fazem a diferença entre grade e bagunça:
+| Tentativa | Por que saiu | Commit |
+| --- | --- | --- |
+| duas colunas, 2 + 2 + 1 | encurtava a seção, mas em coluna estreita os títulos quebram em três linhas, as linhas ficam com alturas diferentes e a quinta etapa atravessando parece órfã | `7eb1142` |
+| card creme com número no canto | devolvia estrutura à grade de duas colunas, mas o peso das cinco molduras é exatamente o que a lista aberta evita | `0553141` |
 
-- **altura igual na linha** (o `stretch` padrão do grid), então os cards
-  vizinhos terminam juntos mesmo com textos de tamanhos diferentes;
-- **selo no rodapé do card** (`margin-top: auto` no `.ci__when`), alinhado com
-  o fim do card ao lado. `p:has(+ .ci__when) { margin-bottom: 16px }` garante a
-  folga mínima no card mais alto da linha, onde o `auto` não tem sobra para
-  distribuir;
-- **número no canto** superior direito, e não em cima do título: identifica a
-  etapa sem competir com ela. "ETAPA 01" cinco vezes era mais rótulo do que
-  informação.
-
-O ícone vive num quadrado arredondado de 46px em branco sobre o creme do card
-(o círculo com borda de 1px lia como marcador de lista). Como a coluna estreita
-cobra do título, os dois últimos encurtaram ("Acompanhamento com a
-nutricionista", "Acompanhamento médico contínuo") — a recorrência já está no
-selo — e o `h3` ganhou `text-wrap: balance`.
-
-No **celular** é um card por linha, todos com o ícone ao lado do texto:
-empilhado, o tile em cima de cada card dava cinco blocos altos demais.
+A seção **é** longa em coluna única — isso é aceito de propósito. Se um dia
+precisar encurtar, o caminho é cortar etapa ou texto, não quebrar em colunas.
 
 A entrada é por **scroll**, não por carga: `revelarNoScroll()` usa
 IntersectionObserver para revelar cada etapa quando ela aparece, porque no
