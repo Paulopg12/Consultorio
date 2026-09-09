@@ -19,7 +19,7 @@ const protocols = [
     nome: "Emagrecimento",
     subtitulo: "Perder peso com qualidade",
     resumo:
-      "Avaliacao medica online, protocolo liberado para receber em casa e acompanhamento semanal com a nutricionista do time ate voce chegar na sua meta.",
+      "Avaliação médica online, protocolo liberado para receber em casa e acompanhamento semanal com a nutricionista do time até você chegar na sua meta.",
     status: "aberto",
     specs: [
       ["Atua em", "Apetite, saciedade e esvaziamento gástrico"],
@@ -981,8 +981,8 @@ function renderIntro() {
         <ol class="ci__track">
           ${etapas
             .map(
-              ([nomeIcone, titulo, texto, quando]) => `
-            <li class="ci__step">
+              ([nomeIcone, titulo, texto, quando], i) => `
+            <li class="ci__step" style="--i:${i}">
               <span class="ci__icon" aria-hidden="true">${icon(nomeIcone)}</span>
               <div>
                 <span class="ci__etapa"></span>

@@ -422,6 +422,7 @@ button, input, textarea, select { font: inherit; }
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
   background: var(--cream);
+  box-shadow: 0 1px 2px rgba(22, 17, 15, 0.02), 0 12px 26px -22px rgba(22, 17, 15, 0.18);
 }
 
 .ci__icon {
@@ -479,12 +480,12 @@ button, input, textarea, select { font: inherit; }
   margin-top: 10px;
   padding: 4px 9px;
   border-radius: 999px;
-  background: var(--paper);
+  background: var(--sage-wash);
   font-family: var(--mono);
   font-size: 9px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--sage-deep);
 }
 
 .ci__cta {
@@ -827,6 +828,68 @@ button, input, textarea, select { font: inherit; }
   margin-top: 1px;
   color: var(--sage-deep);
   stroke-width: 1.8;
+}
+
+/* --- entrada da tela "como funciona" ---
+   Cinco cards iguais chegando de uma vez pesam como parede de texto. Em
+   cascata, com a linha ligando os icones, a tela le como o percurso que
+   ela descreve. O bloco de prefers-reduced-motion la embaixo zera a
+   duracao; o `both` garante que o estado final fica de pe. */
+@keyframes ci-sobe {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes ci-icone {
+  from { opacity: 0; transform: scale(0.7); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes ci-linha {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+
+.ci__main .eyebrow,
+.ci__title,
+.ci__desc,
+.ci__cta {
+  animation: ci-sobe 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.ci__main .eyebrow { animation-delay: 0ms; }
+.ci__title { animation-delay: 60ms; }
+.ci__desc { animation-delay: 110ms; }
+
+/* Depois dos cinco cards (150ms + 5 x 70ms). */
+.ci__cta { animation-delay: 500ms; }
+
+.ci__step {
+  position: relative;
+  animation: ci-sobe 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(150ms + var(--i, 0) * 70ms);
+}
+
+.ci__icon {
+  animation: ci-icone 460ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
+  animation-delay: calc(230ms + var(--i, 0) * 70ms);
+  box-shadow: 0 0 0 1px var(--line), 0 1px 2px rgba(22, 17, 15, 0.04);
+}
+
+/* A linha atravessa o vao ate o card seguinte: left casa com o centro do
+   circulo (22px de padding + 23px de raio). */
+.ci__step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 44px;
+  top: 72px;
+  bottom: -10px;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(to bottom, rgba(140, 156, 129, 0.5), rgba(231, 226, 218, 0.9));
+  transform-origin: top;
+  animation: ci-linha 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(350ms + var(--i, 0) * 70ms);
 }
 
 /* Tela terminal de contraindicacao: sem Continuar, so Voltar. */
@@ -1683,6 +1746,7 @@ button, input, textarea, select { font: inherit; }
   .ci__bar-inner { height: 56px; padding: 0 20px; }
   .ci__main { padding: 32px 20px 44px; }
   .ci__step { grid-template-columns: 38px minmax(0, 1fr); gap: 14px; padding: 16px 16px; }
+  .ci__step:not(:last-child)::after { left: 34px; top: 60px; }
   .dep { gap: 12px; margin-top: 12px; }
   .dep__fala p:first-child { font-size: 14.5px; }
   .dep__fala p { font-size: 12.5px; }
