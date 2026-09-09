@@ -411,57 +411,79 @@ button, input, textarea, select { font: inherit; }
    dobra e empurravam o botao para fora da tela. No celular volta a ser uma
    coluna, com o trilho ligando os icones. */
 .ci__track {
-  margin: 44px 0 0;
+  margin: 40px 0 0;
   padding: 0;
   list-style: none;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: start;
-  gap: 34px 40px;
+  gap: 12px;
   counter-reset: etapa;
 }
 
+/* Card de novo, mas com o acabamento que faltava: duas colunas com altura
+   igual na linha (o stretch do grid), selo colado no rodape do card e numero
+   no canto. Sem a moldura, em duas colunas, os textos ficavam soltos e a
+   quinta etapa parecia orfa. */
 .ci__step {
-  display: grid;
-  grid-template-columns: 44px minmax(0, 1fr);
-  align-items: start;
-  gap: 18px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 22px 24px 24px;
+  border-radius: var(--r-lg);
+  background: var(--cream);
+  box-shadow: inset 0 0 0 1px rgba(22, 17, 15, 0.045), 0 16px 32px -28px rgba(22, 17, 15, 0.4);
 }
 
-/* Sozinha na ultima linha, ocupa a largura toda. */
-.ci__step:last-child { grid-column: 1 / -1; }
+/* O corpo estica para o selo poder descer ate o rodape. */
+.ci__step > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
 
-/* Quadrado arredondado, e nao circulo: o circulo com borda de 1px lia como
-   marcador de lista, o tile le como icone. */
+/* Sozinha na ultima linha, ocupa a largura toda -- e ai o icone fica ao lado
+   do texto, que e o que o espaco pede. */
+.ci__step:last-child {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  align-items: start;
+  gap: 20px;
+}
+
 .ci__icon {
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
+  flex: none;
   display: grid;
   place-items: center;
-  border-radius: 14px;
-  background: linear-gradient(180deg, #fff, var(--cream));
+  border-radius: 15px;
+  background: var(--paper);
   color: var(--sage-deep);
+  margin-bottom: 16px;
 }
 
+.ci__step:last-child .ci__icon { margin-bottom: 0; }
+
 .ci__icon svg {
-  width: 20px;
-  height: 20px;
+  width: 21px;
+  height: 21px;
   stroke-width: 1.5;
 }
 
+/* Numero no canto do card: identifica a etapa sem competir com o titulo,
+   que era o que "ETAPA 01" em cima do titulo fazia. */
 .ci__etapa {
-  display: block;
-  margin: 0 0 6px;
+  position: absolute;
+  top: 24px;
+  right: 24px;
   font-family: var(--mono);
   font-size: 10px;
   line-height: 1;
   letter-spacing: 0.14em;
-  text-transform: uppercase;
   color: var(--faint);
 }
 
-/* So o numero: "ETAPA 01" repetido cinco vezes era mais rotulo do que
-   informacao. */
 .ci__etapa::before {
   counter-increment: etapa;
   content: counter(etapa, decimal-leading-zero);
@@ -470,6 +492,7 @@ button, input, textarea, select { font: inherit; }
 .ci__step h3 {
   font-family: var(--font-display);
   margin: 0;
+  padding-right: 26px;
   color: var(--ink);
   font-size: 17.5px;
   line-height: 1.26;
@@ -480,16 +503,17 @@ button, input, textarea, select { font: inherit; }
 }
 
 .ci__step p {
-  margin: 7px 0 0;
-  max-width: 46ch;
+  margin: 8px 0 0;
   color: var(--muted);
-  font-size: 14px;
-  line-height: 1.58;
+  font-size: 13.8px;
+  line-height: 1.56;
 }
 
+/* margin-top auto: os selos das duas etapas de acompanhamento descem para o
+   rodape do card e ficam alinhados com o fim do card vizinho. */
 .ci__when {
-  display: inline-block;
-  margin-top: 12px;
+  align-self: flex-start;
+  margin-top: auto;
   padding: 5px 10px;
   border-radius: 999px;
   background: var(--sage-wash);
@@ -499,6 +523,10 @@ button, input, textarea, select { font: inherit; }
   text-transform: uppercase;
   color: var(--sage-deep);
 }
+
+/* :has garante a folga minima entre texto e selo no card mais alto da
+   linha, onde o margin-top:auto nao tem sobra para distribuir. */
+.ci__step p:has(+ .ci__when) { margin-bottom: 16px; }
 
 .ci__cta {
   margin-top: 44px;
@@ -883,8 +911,7 @@ button, input, textarea, select { font: inherit; }
 .ci__icon {
   animation: ci-icone 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
   animation-delay: calc(260ms + var(--i, 0) * 90ms);
-  box-shadow: inset 0 0 0 1px rgba(22, 17, 15, 0.06), 0 1px 2px rgba(22, 17, 15, 0.05),
-    0 10px 20px -14px rgba(22, 17, 15, 0.2);
+  box-shadow: 0 1px 2px rgba(22, 17, 15, 0.05), 0 8px 16px -12px rgba(22, 17, 15, 0.22);
 }
 
 /* O trilho vertical existe apenas na coluna unica do celular: em duas
@@ -1778,28 +1805,27 @@ button, input, textarea, select { font: inherit; }
 
   .ci__bar-inner { height: 56px; padding: 0 20px; }
   .ci__main { padding: 32px 20px 44px; }
-  .ci__track { margin-top: 34px; grid-template-columns: minmax(0, 1fr); gap: 0; }
-  .ci__step { grid-template-columns: 40px minmax(0, 1fr); gap: 16px; padding: 0 0 26px; }
-  .ci__step:last-child { grid-column: auto; padding-bottom: 0; }
-  .ci__step h3 { font-size: 17px; }
-
-  .ci__step:not(:last-child)::after {
-    content: "";
-    position: absolute;
-    left: 20px;
-    top: 52px;
-    bottom: 6px;
-    width: 1px;
-    background: linear-gradient(to bottom, rgba(140, 156, 129, 0.45), rgba(22, 17, 15, 0.07));
-    transform-origin: top;
-    animation: ci-linha 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
-    animation-delay: calc(320ms + var(--i, 0) * 90ms);
+  /* Um card por linha, e todos com o icone ao lado do texto: empilhado, o
+     tile em cima de cada card dava cinco blocos altos demais. */
+  .ci__track { margin-top: 32px; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .ci__step,
+  .ci__step:last-child {
+    grid-column: auto;
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    align-items: start;
+    gap: 16px;
+    padding: 18px 20px 20px;
   }
+  .ci__icon { margin-bottom: 0; }
+  .ci__etapa { top: 20px; right: 20px; }
+  .ci__step h3 { font-size: 16.5px; }
   .dep { gap: 12px; margin-top: 12px; }
   .dep__fala p:first-child { font-size: 14.5px; }
   .dep__fala p { font-size: 12.5px; }
   .ci__icon { width: 40px; height: 40px; border-radius: 13px; }
   .ci__icon svg { width: 18px; height: 18px; }
+  .ci__step p { font-size: 13.5px; }
   .ci__cta { align-self: stretch; }
   .ci__cta .btn { align-self: stretch; width: 100%; }
 
