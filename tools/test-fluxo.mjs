@@ -299,14 +299,17 @@ console.log("\n1g. contraindicacao encerra o questionario");
   });
   check("pancreatite em familiar nao encerra", !familiarPancreatite.doc.querySelector(".blk"));
 
-  /* Alergia: por ativo, nao um "Sim" solto. */
-  const alergiaAtivo = boot(rotaDe("bloqueio_alergia"), { alergia: marcadas(["Semaglutida"]) });
-  check("alergia a semaglutida encerra", !!alergiaAtivo.doc.querySelector(".blk"));
-  check("e diz o motivo certo", alergiaAtivo.doc.querySelector(".blk__motivo").textContent.includes("semaglutida"));
-  const alergiaTirze = boot(rotaDe("bloqueio_alergia"), { alergia: marcadas(["Tirzepatida"]) });
-  check("alergia a tirzepatida encerra", !!alergiaTirze.doc.querySelector(".blk"));
+  /* Alergia: por ativo, e um ativo sozinho nao encerra -- o medico indica o
+     outro no lugar. Encerra so quando os dois estao fora. */
+  const soSema = boot(rotaDe("bloqueio_alergia"), { alergia: marcadas(["Semaglutida"]) });
+  check("alergia so a semaglutida nao encerra", !soSema.doc.querySelector(".blk"));
+  const soTirze = boot(rotaDe("bloqueio_alergia"), { alergia: marcadas(["Tirzepatida"]) });
+  check("alergia so a tirzepatida nao encerra", !soTirze.doc.querySelector(".blk"));
+  const asDuas = boot(rotaDe("bloqueio_alergia"), { alergia: marcadas(["Semaglutida", "Tirzepatida"]) });
+  check("alergia aos dois encerra", !!asDuas.doc.querySelector(".blk"));
+  check("e diz o motivo certo", asDuas.doc.querySelector(".blk__motivo").textContent.includes("tirzepatida"));
   const alergiaOutra = boot(rotaDe("bloqueio_alergia"), {
-    alergia: marcadas(["Outra alergia (medicamento ou alimento)", "Liraglutida"]),
+    alergia: marcadas(["Outra alergia (medicamento ou alimento)"]),
   });
   check("alergia a outra coisa nao encerra", !alergiaOutra.doc.querySelector(".blk"));
 
@@ -314,6 +317,16 @@ console.log("\n1g. contraindicacao encerra o questionario");
   const perguntaAlergia = boot(rotaDe("alergia"));
   check("a pergunta de alergia existe de novo", perguntaAlergia.doc.querySelector(".cq__question").textContent.includes("alergia"));
   check("permite marcar mais de uma", !!perguntaAlergia.doc.querySelector(".cq__options--multi"));
+  const opcoesAlergia = [...perguntaAlergia.doc.querySelectorAll("[data-option]")].map((o) => o.value);
+  check("liraglutida saiu das opcoes", !opcoesAlergia.includes("Liraglutida"), opcoesAlergia.join(" | "));
+  check(
+    "semaglutida e tirzepatida ficam separadas",
+    opcoesAlergia.includes("Semaglutida") && opcoesAlergia.includes("Tirzepatida")
+  );
+  check(
+    "o apoio explica a troca de um pelo outro",
+    perguntaAlergia.doc.querySelector(".cq__help").textContent.includes("o outro")
+  );
   const campoOutra = perguntaAlergia.doc.querySelector('[data-field-key="alergia_outra"]');
   check("a caixa de descricao comeca escondida", !!campoOutra && campoOutra.hidden);
   const outra = [...perguntaAlergia.doc.querySelectorAll("[data-option]")].find((o) => o.value.startsWith("Outra"));
@@ -651,7 +664,9 @@ async function percorrer(sexo) {
          campo: "Sim" bloqueia na gravidez e nao nas outras perguntas. */
       const bloqueia = new Set(
         Object.values(window.__api.BLOQUEIOS)
-          .filter((b) => b.field === campo)
+          /* Grupo `todas` precisa de todas as respostas marcadas, e o
+             percurso marca uma por pergunta: nao ha o que evitar. */
+          .filter((b) => b.field === campo && !b.todas)
           .flatMap((b) => b.valores)
       );
       let alvo = opts.find((o) => o.getAttribute("aria-pressed") !== "true" && !bloqueia.has(o.value));

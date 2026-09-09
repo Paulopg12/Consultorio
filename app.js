@@ -454,10 +454,12 @@ const steps = [
     label: "Alergia",
     kind: "multiple",
     title: "Você tem alergia a algum destes medicamentos?",
-    help: "Marque todas que se aplicam. Se a sua alergia é a outro medicamento ou a alimento, marque a última opção e descreva.",
+    help: "Marque todas que se aplicam. Se você é alérgico a um dos dois, o médico indica o outro no lugar.",
     /* Por ativo, e nao um "Sim" solto: alergia a dipirona nao pode encerrar o
-       questionario, e alergia ao ativo do protocolo nao pode passar. */
-    options: ["Semaglutida", "Tirzepatida", "Liraglutida", "Outra alergia (medicamento ou alimento)", "Não tenho alergia"],
+       questionario, e alergia ao ativo do protocolo nao pode passar em
+       branco. Semaglutida e tirzepatida ficam separadas porque uma substitui
+       a outra na prescricao. */
+    options: ["Semaglutida", "Tirzepatida", "Outra alergia (medicamento ou alimento)", "Não tenho alergia"],
     exclusive: "Não tenho alergia",
     fields: [
       {
@@ -619,20 +621,24 @@ const BLOQUEIOS = {
     valores: ["Carcinoma medular da tireoide (CMT)", "Síndrome MEN 2"],
     motivo: "Carcinoma medular da tireoide ou MEN 2 em familiar de primeiro grau",
   },
-  /* Só os dois ativos que este protocolo prescreve. Liraglutida fica de fora
-     de propósito: é outra molécula, entra como histórico para o médico. */
+  /* `todas`: aqui as duas alergias precisam estar marcadas. Alergia a um dos
+     ativos não encerra nada — o médico indica o outro no lugar. Só quando
+     ambos estão fora é que não resta o que prescrever. */
   alergia: {
     field: "alergia",
     valores: ["Semaglutida", "Tirzepatida"],
-    motivo: "Alergia à semaglutida ou à tirzepatida",
+    todas: true,
+    motivo: "Alergia à semaglutida e à tirzepatida",
   },
 };
 
 function bloqueado(nome) {
-  const { field, valores } = BLOQUEIOS[nome];
+  const { field, valores, todas } = BLOQUEIOS[nome];
   const resposta = getValue(field);
   const marcadas = Array.isArray(resposta) ? resposta : resposta ? [resposta] : [];
-  return valores.some((valor) => marcadas.includes(valor));
+  return todas
+    ? valores.every((valor) => marcadas.includes(valor))
+    : valores.some((valor) => marcadas.includes(valor));
 }
 
 /* Usado também pelo roteador: com bloqueio ativo, o prontuário nao pode ser
