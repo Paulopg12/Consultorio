@@ -71,7 +71,7 @@ const steps = [
     kind: "single",
     title: "Você está grávida ou amamentando?",
     help: "Os tratamentos propostos não são indicados para gestantes ou lactantes sem orientação da obstetra.",
-    options: ["Não, não amamento ninguém", "Sim"],
+    options: ["Não! Não amamento.", "Sim"],
     showIf: { field: "sexo_biologico", equals: "Feminino" },
     auto: true,
   },
