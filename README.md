@@ -4,14 +4,19 @@ Reconstrução estática do consultório digital. HTML, CSS e JavaScript puro,
 sem build: a Ezra vai embutida em base64 no CSS, a Montserrat vem do Google
 Fonts e as respostas ficam em `localStorage`.
 
+O logotipo é o arquivo oficial (`assets/logo-tml.png`, horizontal, recortado
+sem margem). A marca nunca é remontada em texto: a Ezra não tem o "&"
+desenhado do logo nem o espaçamento do original. O CSS controla só a altura
+(`.wordmark`), e a largura acompanha o aspecto de 13,3:1.
+
 ## Rotas
 
 | Rota | Tela |
 | --- | --- |
 | `/pages/consultorio` | Seleção de protocolo |
 | `/pages/consultorio-inicio` | Como funciona a avaliação |
-| `/pages/consultorio-1` … `-36` | Passos do fluxo (o total visível varia com as condicionais) |
-| `/pages/consultorio-37` | Prontuário e checkout |
+| `/pages/consultorio-1` … `-38` | Passos do fluxo (o total visível varia com as condicionais) |
+| `/pages/consultorio-39` | Prontuário e checkout |
 
 Rota desconhecida cai na seleção de protocolo. Rota de um passo que existe
 mas está invisível (condicional que deixou de valer) recua até o passo
@@ -30,15 +35,24 @@ Definidos no array `protocols`, no topo do `app.js`:
 - **Cabelo, Força, Sono, Ejaculação precoce, Disfunção erétil** — `status: "breve"`,
   entram na grade com selo "Em breve", esmaecidos e não clicáveis
 
+Cada protocolo tem um `subtitulo` — o benefício em uma linha, embaixo do nome
+no card ("Perder peso com qualidade", "Ter mais potência"). O título da tela
+de seleção é "Qual Tratamento Você Busca?".
+
 Os seis aparecem numa grade de 3 por linha no desktop e 2 em tablet. **No
 celular fica um por linha**, e os cinco “em breve” passam a linha horizontal
 com o selo à direita: em duas colunas os nomes longos quebravam em três
 linhas apertadas, e seis cards em bloco dariam uma página longa demais.
 
 Só o card aberto é um link. As `specs` do protocolo aparecem na tela seguinte
-("como funciona"), não na seleção. O campo `resumo` continua suportado, mas o
-de emagrecimento está sem ele: o texto sobre análogos de GLP-1 foi removido a
-pedido.
+("como funciona"), não na seleção. O `resumo` do emagrecimento descreve o
+processo completo, acompanhamento incluído — o texto que havia ali antes,
+sobre análogos de GLP-1, é que foi removido a pedido.
+
+A tela "como funciona" lista **cinco** etapas: avaliação, análise médica,
+protocolo liberado, acompanhamento semanal com a nutricionista e
+acompanhamento médico até o fim do protocolo. As duas últimas trazem o rótulo
+de recorrência ("TODA SEMANA", "DURANTE O TRATAMENTO") no lugar de prazo.
 
 Para abrir um protocolo novo: troque o `status` para `"aberto"` e preencha as
 `specs`. O fluxo de perguntas hoje é compartilhado — o array
@@ -79,24 +93,71 @@ de imagens foi revertida — a faixa de foto competia com o título e empurrava
 o texto para baixo, sem acrescentar informação. Está no histórico do git
 (commit `fb84fcd`) se alguém quiser retomar com material próprio.
 
-### Contador e barra de progresso
+### Etapas, contador e barra de progresso
 
-Medem coisas diferentes de propósito. A **barra** avança pelo fluxo inteiro,
-telas informativas incluídas — uma barra congelada por uma tela parece
-defeito. O **contador** conta apenas perguntas, e desaparece nas telas
-informativas, dando lugar ao `eyebrow`. Assim nunca se vê um número travado
-ao lado de uma barra que andou.
+O questionário é dividido em **etapas nomeadas** (array `ETAPAS`): cada uma
+termina no passo `ate`, e a barra ganha um segmento por etapa, com peso
+proporcional ao número de passos dela. Trinta e tantas perguntas atrás de uma
+barra única pareciam não andar; em segmentos dá para ver o que já ficou para
+trás. O cabeçalho diz "Etapa 3/7" e o nome da etapa — no celular só o número,
+que o nome não cabe.
+
+As etapas são medidas sobre o **fluxo visível**: passo condicional que não
+apareceu não conta como progresso, e etapa que ficou sem nenhum passo sai da
+barra. `ate` apontando para um field inexistente derruba um `console.error` na
+carga, como o field duplicado.
+
+O **contador** continua contando apenas perguntas, e desaparece nas telas
+informativas, dando lugar ao `eyebrow`.
 
 ### Peso, meta e altura
 
-Os três ficam num só passo (`medidas`, `kind: "fields"`), em três colunas no
-desktop e empilhados no celular. Eram três telas separadas.
+`peso_atual` vem **sozinho e antes** da meta de perda: as faixas em quilos da
+`meta_perda` são calculadas sobre ele. `medidas` ficou com `peso_meta` e
+`altura`, em duas colunas.
 
 As chaves gravadas seguem sendo `peso_atual`, `peso_meta` e `altura` — o
 cálculo de IMC e o prontuário dependem delas, e o `localStorage` é indexado
 por chave, então quem respondeu antes da mudança não perde nada.
 
 O `fieldLayout` aceita `grid: 3` além de `grid: true` (duas colunas).
+
+O passo `medidas` traz um `aviso`: a altura vai em centímetros e sem
+pontuação. Qualquer passo pode ter `aviso` — ele aparece abaixo dos campos,
+com o ícone de alerta e peso de nota, não de erro.
+
+### Opções com faixa em quilos
+
+`options` aceita array de strings **ou função**, e cada opção pode ser
+`{ value, detail }`. O `value` é o que fica gravado; o `detail` é a linha de
+apoio. É assim que "Menos de 5% do peso corporal" ganha "até 5 kg" embaixo
+sem que trocar o peso depois desmarque a resposta já gravada.
+
+### Perguntas encadeadas na mesma tela (`subgrupos`)
+
+Um passo `singleWithText` pode trazer `subgrupos`: perguntas de opção que
+aparecem **na mesma tela**, reveladas pela resposta principal
+(`reveal: { values: [...] }`) ou por outro subgrupo (`reveal: { from: "chave" }`).
+`multiple: true` deixa marcar mais de uma. A ordem do array é a ordem da
+cascata, e subgrupo que se esconde **limpa a própria resposta** — senão
+"Emagreceu?" continuaria de pé depois de voltar para "Nunca usei".
+
+Dois casos hoje:
+
+- `semaglutida_tirzepatida` — "Sim" abre "Qual deles?", e a escolha abre
+  "Emagreceu?".
+- `colateral` (era a pergunta de alergia) — "Teve algum efeito colateral?"
+  com "Sim" abrindo a lista de exemplos, e a lista abrindo a caixa de texto.
+  O campo de texto usa `revealFrom` + `revealValues: ["*"]`: revelado por
+  qualquer seleção do subgrupo, não pela resposta principal.
+
+### Anexo pendurado numa pergunta (`slots`)
+
+`tem_exame` é uma pergunta de opção com `slots`: o "Sim" abre a área de envio
+do exame na própria tela, e por isso o passo **não** tem `auto`. O slot aceita
+PDF além de JPG e PNG (`tipos`), e sem `silhueta` o card mostra o ícone de
+arquivo. Reusa a máquina das fotos do corpo — IndexedDB para o arquivo,
+metadados no `localStorage`.
 
 Some daqui o texto de apoio que dizia "se o IMC ficar abaixo de 25, a
 indicação tende a priorizar alternativa oral" — ele contradizia a bula dos
@@ -175,6 +236,13 @@ card avisa e o fluxo continua.
 > receba o payload do `localStorage` mais os blobs do IndexedDB.
 
 ## Depoimento
+
+O depoimento é **recortado por sexo** (`DEPOIMENTOS`, com `feminino` e
+`masculino`). Cada entrada tem `pronto`: enquanto o material de um sexo não
+chega, a tela sai do fluxo em vez de mostrar a pessoa do outro. Hoje só o
+feminino está pronto — o masculino espera fotos e fala de um paciente homem
+(salve as duas fotos em `/assets`, preencha os campos e troque `pronto` para
+`true`). O título da tela vem do próprio depoimento.
 
 O passo `info_depoimento` traz um depoimento com antes e depois, montado a
 partir da constante `DEPOIMENTO` no `app.js`: fotos em

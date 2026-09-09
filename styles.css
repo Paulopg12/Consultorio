@@ -90,23 +90,13 @@ button, input, textarea, select { font: inherit; }
   color: var(--sage-deep);
 }
 
+/* Logotipo oficial em SVG. A altura manda e a largura acompanha o aspecto
+   do arquivo (13,3:1), por isso nada de width fixa aqui. */
 .wordmark {
-  font-family: var(--font-display);
-  display: inline-flex;
-  align-items: baseline;
-  gap: 6px;
-  color: var(--ink);
-  font-size: 15px;
-  line-height: 1;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-}
-
-.wordmark i {
-  font-style: normal;
-  font-weight: 600;
-  color: var(--faint);
+  flex: none;
+  display: block;
+  height: 14px;
+  width: auto;
 }
 
 .btn {
@@ -284,9 +274,16 @@ button, input, textarea, select { font: inherit; }
   color: var(--faint);
 }
 
+/* O bloco de texto e que desce para o rodape do card; o nome e o subtitulo
+   ficam colados um no outro. */
+.ps__card-text {
+  margin: auto 0 0;
+  min-width: 0;
+}
+
 .ps__card-name {
   font-family: var(--font-display);
-  margin: auto 0 0;
+  margin: 0;
   color: var(--ink);
   font-size: 21px;
   line-height: 1.12;
@@ -294,11 +291,21 @@ button, input, textarea, select { font: inherit; }
   letter-spacing: -0.015em;
 }
 
+.ps__card-sub {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.35;
+  font-weight: 500;
+}
+
 .ps__card--soon .ps__card-name {
   color: var(--ink);
   opacity: 0.5;
   font-weight: 700;
 }
+
+.ps__card--soon .ps__card-sub { opacity: 0.6; }
 
 .ps__card-cta {
   display: inline-flex;
@@ -637,19 +644,32 @@ button, input, textarea, select { font: inherit; }
   background: var(--line);
 }
 
+/* Um segmento por etapa. O gap e o que faz a divisao aparecer: barra unica
+   em 30+ perguntas parece nao andar. */
 .cq__bar {
+  display: flex;
+  gap: 3px;
   width: 100%;
-  height: 2px;
-  background: var(--line);
+  height: 3px;
 }
 
-.cq__bar span {
+.cq__bar-seg {
+  flex: 1 1 auto;
+  min-width: 6px;
+  background: var(--line);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.cq__bar-seg i {
   display: block;
   height: 100%;
-  width: var(--progress);
+  width: var(--seg, 0%);
   background: var(--sage-deep);
   transition: width 240ms cubic-bezier(0.22, 1, 0.36, 1);
 }
+
+.cq__etapa-nome { color: var(--copy); }
 
 /* Rola apenas se o conteudo realmente estourar. Nas perguntas isso nao
    deve acontecer -- a excecao consciente e a tela de depoimento, onde a
@@ -764,6 +784,84 @@ button, input, textarea, select { font: inherit; }
   background: var(--sage-deep);
   box-shadow: inset 0 0 0 2.5px #fff;
 }
+
+/* Faixa em quilos embaixo do texto da opcao: apoio, nao rotulo. */
+.cq__option-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.cq__option-detail {
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.3;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.cq__option[aria-pressed="true"] .cq__option-detail { color: var(--sage-deep); }
+
+/* Aviso de preenchimento (a altura sem pontuacao, por exemplo): fica abaixo
+   dos campos, com o peso de nota e nao de erro. */
+.cq__aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 14px 0 0;
+  padding: 11px 13px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--cream);
+  color: var(--copy);
+  font-size: 12.5px;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.cq__aviso svg {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  margin-top: 1px;
+  color: var(--sage-deep);
+  stroke-width: 1.8;
+}
+
+/* Anexo revelado por uma resposta (o exame, por exemplo). */
+.cq__anexo { margin-top: 18px; }
+
+/* Card de arquivo que nao e foto do corpo: sem silhueta, so o icone. */
+.ph__arquivo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--sage-deep);
+}
+
+.ph__arquivo svg {
+  width: 26px;
+  height: 26px;
+  stroke-width: 1.4;
+}
+
+/* Pergunta encadeada dentro da mesma tela. */
+.cq__sub { margin-top: 18px; }
+
+.cq__sub-label {
+  margin: 0 0 9px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  line-height: 1;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--sage-deep);
+}
+
+.cq__sub .cq__options { margin-top: 0; }
 
 /* --- campos --- */
 .cq__field {
@@ -1522,7 +1620,9 @@ button, input, textarea, select { font: inherit; }
      "Disfunção erétil") quebravam em três linhas apertadas. */
   .ps__grid { grid-template-columns: minmax(0, 1fr); gap: 10px; margin-top: 26px; }
   .ps__card { min-height: 0; padding: 16px 18px; }
-  .ps__card-name { margin-top: 12px; font-size: 19px; }
+  .ps__card-text { margin-top: 12px; }
+  .ps__card-name { font-size: 19px; }
+  .ps__card-sub { font-size: 12px; }
 
   /* Os "em breve" ficam em linha: selo à direita, nome à esquerda — seis
      cards empilhados em bloco dariam uma página longa demais. */
@@ -1534,7 +1634,9 @@ button, input, textarea, select { font: inherit; }
     padding: 14px 18px;
   }
 
-  .ps__card--soon .ps__card-name { margin: 0; font-size: 16px; }
+  .ps__card--soon .ps__card-text { margin: 0; }
+  .ps__card--soon .ps__card-name { font-size: 16px; }
+  .ps__card--soon .ps__card-sub { margin-top: 3px; font-size: 11.5px; }
   .ps__card--soon .ps__badge { order: 2; }
 
   .ci__bar-inner { height: 56px; padding: 0 20px; }
@@ -1557,7 +1659,7 @@ button, input, textarea, select { font: inherit; }
   .cq__grid-3 { grid-template-columns: minmax(0, 1fr); gap: 11px; }
   .cq__foot-inner { width: calc(100% - 32px); padding: 11px 0; gap: 10px; }
   .cq__foot .btn { max-width: none; }
-  .wordmark { font-size: 13px; }
+  .wordmark { height: 11px; }
   .ph__grid { gap: 8px; }
   .ph__card { padding: 13px 10px 12px; }
   .ph__thumb { width: 54px; height: 84px; }
@@ -1573,7 +1675,8 @@ button, input, textarea, select { font: inherit; }
 
 @media (max-width: 380px) {
   .cq__meta { font-size: 9px; letter-spacing: 0.1em; }
-  .cq__protocol { display: none; }
+  /* No celular cabe o numero da etapa e o contador; o nome da etapa sai. */
+  .cq__etapa-nome { display: none; }
 }
 
 /* telas baixas: comprime ainda mais para nao gerar rolagem.

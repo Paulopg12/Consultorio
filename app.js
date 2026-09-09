@@ -17,6 +17,9 @@ const protocols = [
   {
     id: "emagrecimento",
     nome: "Emagrecimento",
+    subtitulo: "Perder peso com qualidade",
+    resumo:
+      "Avaliacao medica online, protocolo liberado para receber em casa e acompanhamento semanal com a nutricionista do time ate voce chegar na sua meta.",
     status: "aberto",
     specs: [
       ["Atua em", "Apetite, saciedade e esvaziamento gástrico"],
@@ -24,11 +27,11 @@ const protocols = [
       ["Prescrição", "Sujeita à avaliação médica"],
     ],
   },
-  { id: "cabelo", nome: "Cabelo", status: "breve" },
-  { id: "forca", nome: "Força", status: "breve" },
-  { id: "sono", nome: "Sono", status: "breve" },
-  { id: "ejaculacao-precoce", nome: "Ejaculação precoce", status: "breve" },
-  { id: "disfuncao-eretil", nome: "Disfunção erétil", status: "breve" },
+  { id: "cabelo", nome: "Cabelo", subtitulo: "Rejuvenescer com os cabelos", status: "breve" },
+  { id: "forca", nome: "Força", subtitulo: "Obter mais força", status: "breve" },
+  { id: "sono", nome: "Sono", subtitulo: "Dormir melhor", status: "breve" },
+  { id: "ejaculacao-precoce", nome: "Ejaculação precoce", subtitulo: "Demorar mais na cama", status: "breve" },
+  { id: "disfuncao-eretil", nome: "Disfunção erétil", subtitulo: "Ter mais potência", status: "breve" },
 ];
 
 const steps = [
@@ -39,18 +42,15 @@ const steps = [
     title: "Identificação",
     help: "Preencha seus dados para iniciar a avaliação médica.",
     fields: [
-      { key: "cpf", label: "CPF", type: "text", placeholder: "000.000.000-00", required: true, format: "cpf" },
       { key: "nome", label: "Nome", type: "text", placeholder: "Nome completo", required: true },
       { key: "telefone", label: "Telefone", type: "tel", placeholder: "(11) 91234-5678", required: true, format: "phone" },
-      { key: "nascimento", label: "Nascimento", type: "date", required: true },
-      { key: "email", label: "E-mail", type: "email", placeholder: "você@email.com", required: true },
     ],
   },
   {
     field: "sexo_biologico",
     label: "Sexo biológico",
     kind: "single",
-    title: "Qual o sexo atribuído a você ao nascer?",
+    title: "Qual seu sexo?",
     help: "Perguntamos para adaptar as questões de segurança. Isso não define a sua identidade de gênero.",
     options: ["Feminino", "Masculino"],
     auto: true,
@@ -71,28 +71,56 @@ const steps = [
     kind: "single",
     title: "Você está grávida ou amamentando?",
     help: "Os tratamentos propostos não são indicados para gestantes ou lactantes sem orientação da obstetra.",
-    options: ["Não", "Sim"],
+    options: ["Não, não amamento ninguém", "Sim"],
     showIf: { field: "sexo_biologico", equals: "Feminino" },
     auto: true,
+  },
+  {
+    field: "nascimento",
+    label: "Nascimento",
+    kind: "fields",
+    title: "Qual sua idade?",
+    help: "Preencha a sua data de nascimento.",
+    fields: [{ key: "nascimento", label: "Data de nascimento", type: "date", required: true }],
+  },
+  {
+    field: "peso_atual",
+    label: "Peso atual",
+    kind: "fields",
+    title: "Qual o seu peso atual?",
+    help: "É a base do cálculo do IMC e das faixas da sua meta.",
+    fields: [{ key: "peso_atual", label: "Peso atual", type: "number", placeholder: "0", suffix: "kg", required: true }],
   },
   {
     field: "meta_perda",
     label: "Meta de perda de peso",
     kind: "single",
     title: "Qual a sua meta de perda de peso?",
-    options: ["Menos de 5% do peso corporal", "Entre 6%-15% do peso corporal", "Acima de 16% do peso corporal"],
+    help: "Os quilos de cada faixa saem do peso que você acabou de informar.",
+    /* Faixa em quilos calculada sobre o peso atual: "5% do peso corporal" não
+       diz nada, "até 4 kg" diz. O `value` continua sendo o texto da faixa —
+       mudar o peso depois não desmarca a resposta já gravada. */
+    options: () => {
+      const peso = toNumber(getValue("peso_atual"));
+      const kg = (fracao) => `${Math.round(peso * fracao)} kg`;
+      return [
+        { value: "Menos de 5% do peso corporal", detail: peso ? `até ${kg(0.05)}` : "" },
+        { value: "Entre 6%-15% do peso corporal", detail: peso ? `de ${kg(0.06)} a ${kg(0.15)}` : "" },
+        { value: "Acima de 16% do peso corporal", detail: peso ? `${kg(0.16)} ou mais` : "" },
+      ];
+    },
     auto: true,
   },
   {
     field: "medidas",
     label: "Medidas",
     kind: "fields",
-    title: "Seu peso, sua meta e sua altura.",
+    title: "Sua meta e sua altura.",
     help: "A meta é o peso que você quer alcançar — não precisa ser exata.",
+    aviso: "A altura vai em centímetros e sem pontuação: 175, e não 1,75.",
     fields: [
-      { key: "peso_atual", label: "Peso atual", type: "number", placeholder: "0", suffix: "kg", required: true },
       { key: "peso_meta", label: "Meta de peso", type: "number", placeholder: "0", suffix: "kg", required: true },
-      { key: "altura", label: "Altura", type: "number", placeholder: "0", suffix: "cm", required: true },
+      { key: "altura", label: "Altura", type: "number", placeholder: "175", suffix: "cm", required: true },
     ],
   },
   {
@@ -109,10 +137,12 @@ const steps = [
     field: "info_depoimento",
     kind: "info",
     label: "Depoimento",
-    title: "Comemore o seu dia 1.",
     /* Logo depois da devolutiva de IMC: a pessoa acabou de ver o próprio
        número, e é quando o relato de quem passou pelo mesmo pesa mais. */
-    render: () => depoimento(),
+    title: () => depoimentoDoSexo().titulo,
+    render: () => depoimento(depoimentoDoSexo()),
+    /* Sem material da pessoa do mesmo sexo, a tela sai do fluxo. */
+    showIf: { when: () => depoimentoDoSexo().pronto },
   },
   {
     field: "gordura_acumulada",
@@ -121,6 +151,14 @@ const steps = [
     title: "Qual parte do corpo você nota que tem mais gordura acumulada?",
     options: ["Na barriga", "Quadris e coxas", "Corpo todo"],
     auto: true,
+  },
+  {
+    field: "email",
+    label: "E-mail",
+    kind: "fields",
+    title: "Qual o seu e-mail?",
+    help: "É por onde chega a indicação do médico e o seu acompanhamento.",
+    fields: [{ key: "email", label: "E-mail", type: "email", placeholder: "você@email.com", required: true }],
   },
   {
     field: "horas_sono",
@@ -199,14 +237,16 @@ const steps = [
   {
     field: "medicamentos_diabetes",
     label: "Medicamentos para diabetes",
-    kind: "textarea",
+    kind: "singleWithText",
     title: "Você utiliza insulina ou outro remédio para diabetes?",
+    options: ["Sim", "Não"],
     fields: [
       {
-        key: "medicamentos_diabetes",
+        key: "medicamentos_diabetes_quais",
+        label: "Quais medicamentos?",
         type: "textarea",
         placeholder: "Descreva todos os medicamentos que você utiliza, incluindo nome, dosagem e frequência.",
-        required: true,
+        revealValues: ["Sim"],
       },
     ],
     showIf: { field: "diagnosticos_metabolicos", includesAny: ["Diabetes tipo 1", "Diabetes tipo 2"] },
@@ -258,26 +298,6 @@ const steps = [
       "Nenhuma das anteriores",
     ],
     exclusive: "Nenhuma das anteriores",
-  },
-  {
-    field: "info_validacao",
-    kind: "info",
-    label: "Contexto",
-    eyebrow: "Contexto",
-    title: "Você já tentou pelos caminhos certos.",
-    body: [
-      "Dieta, contagem de calorias e acompanhamento profissional funcionam para muita gente — e quando não funcionam, isso raramente é falta de esforço. A regulação do apetite tem componente hormonal, e é aí que o tratamento medicamentoso pode entrar.",
-      "O médico considera o que você já tentou justamente para não repetir o que não deu resultado.",
-    ],
-    showIf: {
-      field: "tentativas",
-      includesAny: [
-        "Dieta",
-        "Contagem de calorias",
-        "Acompanhamento com nutricionista",
-        "Acompanhamento com nutrólogo/endocrinologista",
-      ],
-    },
   },
   {
     field: "come_estressado",
@@ -362,8 +382,24 @@ const steps = [
     field: "semaglutida_tirzepatida",
     label: "Uso anterior",
     kind: "singleWithText",
-    title: "Você já utilizou Semaglutida ou Tirzepatida? Como foi o tratamento?",
+    title: "Você já utilizou Semaglutida ou Tirzepatida?",
     options: ["Nunca usei", "Sim"],
+    /* Cascata na mesma tela: o "Sim" abre qual dos dois, e a escolha abre o
+       "Emagreceu?". A ordem do array é a ordem da cascata. */
+    subgrupos: [
+      {
+        key: "semaglutida_tirzepatida_qual",
+        label: "Qual deles?",
+        options: ["Semaglutida", "Tirzepatida"],
+        reveal: { values: ["Sim"] },
+      },
+      {
+        key: "semaglutida_tirzepatida_emagreceu",
+        label: "Emagreceu?",
+        options: ["Sim", "Não"],
+        reveal: { from: "semaglutida_tirzepatida_qual", values: ["Semaglutida", "Tirzepatida"] },
+      },
+    ],
     fields: [
       {
         key: "semaglutida_tirzepatida_relato",
@@ -387,14 +423,43 @@ const steps = [
     auto: true,
   },
   {
-    field: "alergia",
-    label: "Alergia",
+    field: "colateral",
+    label: "Efeitos colaterais",
     kind: "singleWithText",
-    title: "Você possui alguma alergia? (Exemplo: Semaglutida, Tirzepatida, Liraglutida, etc)",
+    title: "Teve algum efeito colateral?",
+    help: "Se você já usou algum tratamento para emagrecer, conte como o seu corpo reagiu.",
     options: ["Sim", "Não"],
-    fields: [{ key: "alergia_qual", label: "Se sim, qual medicamento?", type: "textarea", placeholder: "Se sim, qual medicamento?", revealValues: ["Sim"] }],
+    subgrupos: [
+      {
+        key: "colateral_quais",
+        label: "Quais?",
+        multiple: true,
+        options: [
+          "Náusea",
+          "Vómito",
+          "Diarreia",
+          "Constipação",
+          "Azia ou refluxo",
+          "Dor de cabeça",
+          "Cansaço",
+          "Outro",
+        ],
+        reveal: { values: ["Sim"] },
+      },
+    ],
+    fields: [
+      {
+        key: "colateral_relato",
+        label: "Conte como foi",
+        type: "textarea",
+        placeholder: "O que você sentiu, quanto tempo durou e o que fez para melhorar.",
+        /* Revelado pela escolha do subgrupo, nao pela resposta principal:
+           "*" e qualquer selecao. */
+        revealFrom: "colateral_quais",
+        revealValues: ["*"],
+      },
+    ],
   },
-  { field: "via_tratamento", label: "Via de tratamento", kind: "single", title: "Você gostaria de um tratamento por via oral ou injetável?", options: ["Oral", "Injetável"], auto: true },
   {
     field: "dosagem_baixa",
     label: "Dosagem inicial",
@@ -406,12 +471,33 @@ const steps = [
   {
     field: "informacoes_medico",
     label: "Informacoes adicionais",
-    kind: "textarea",
+    kind: "singleWithText",
     title: "Há alguma outra informação sobre sua saúde que você queira compartilhar com seu médico?",
-    fields: [{ key: "informacoes_medico", type: "textarea", placeholder: "Digite aqui outras informações relevantes" }],
-    optional: true,
+    options: ["Sim", "Não"],
+    fields: [
+      {
+        key: "informacoes_medico_relato",
+        label: "O que o médico precisa saber?",
+        type: "textarea",
+        placeholder: "Digite aqui outras informações relevantes",
+        revealValues: ["Sim"],
+      },
+    ],
   },
-  { field: "tem_exame", label: "Exames", kind: "single", title: "Você já tem algum exame?", options: ["Sim", "Não"], auto: true },
+  {
+    field: "tem_exame",
+    label: "Exames",
+    kind: "single",
+    title: "Você já tem algum exame?",
+    options: ["Sim", "Não"],
+    /* Sem `auto`: o "Sim" abre a área de envio na mesma tela, e avançar
+       sozinho tiraria a pessoa de cima dela. */
+    slotsReveal: ["Sim"],
+    slotsHint: "JPG, PNG ou PDF · até 5 MB",
+    slots: [
+      { key: "exame_arquivo", label: "Exame", tipos: ["image/jpeg", "image/png", "application/pdf"] },
+    ],
+  },
   {
     field: "fotos_corpo",
     kind: "photos",
@@ -419,6 +505,14 @@ const steps = [
     title: "Se quiser, envie duas fotos do seu corpo.",
     help: "É opcional. A foto ajuda o médico a avaliar composição corporal e a comparar a sua evolução durante o tratamento. Use roupa leve, boa luz e o corpo inteiro no quadro.",
     optional: true,
+  },
+  {
+    field: "cpf",
+    label: "CPF",
+    kind: "fields",
+    title: "Qual o seu CPF?",
+    help: "O CPF é obrigatório na prescrição: sem ele o médico não consegue emitir a receita no seu nome.",
+    fields: [{ key: "cpf", label: "CPF", type: "text", placeholder: "000.000.000-00", required: true, format: "cpf" }],
   },
 ];
 
@@ -437,14 +531,46 @@ steps.forEach((step) => {
   seenFields.add(step.field);
 });
 
+/* ---------------------------- etapas ---------------------------- */
+
+/* Trinta e tantas perguntas atrás de uma barra única parecem não andar. O
+   questionário é dividido em etapas nomeadas: cada uma termina no passo
+   `ate` e a barra ganha um segmento por etapa, então dá para ver o que já
+   ficou para trás. A ordem aqui é a ordem do array `steps`. */
+const ETAPAS = [
+  { nome: "Seus dados", ate: "nascimento" },
+  { nome: "Peso e meta", ate: "info_depoimento" },
+  { nome: "Hábitos", ate: "vómito_induzido" },
+  { nome: "Histórico médico", ate: "tentativas" },
+  { nome: "Sua saúde", ate: "condicoes_atuais" },
+  { nome: "Tratamento", ate: "dosagem_baixa" },
+  { nome: "Finalizar", ate: "cpf" },
+];
+
+/* `ate` que nao casa com nenhum field deixaria a etapa vazia e sumiria da
+   barra sem ninguem notar. Falha alto, na carga, como o field duplicado. */
+ETAPAS.forEach((etapa) => {
+  if (!steps.some((step) => step.field === etapa.ate)) console.error("etapa aponta para field inexistente:", etapa.ate);
+});
+
+/* Medido sobre o fluxo visível: passo condicional que não apareceu não pode
+   contar como progresso, nem sustentar uma etapa inteira. */
+function etapasDoFluxo(flow) {
+  const limites = ETAPAS.map((etapa) => steps.findIndex((step) => step.field === etapa.ate));
+  return ETAPAS.map((etapa, i) => {
+    const inicio = i === 0 ? 0 : limites[i - 1] + 1;
+    const fim = limites[i];
+    const passos = flow.filter((step) => {
+      const at = steps.indexOf(step);
+      return at >= inicio && at <= fim;
+    });
+    return { nome: etapa.nome, passos };
+  }).filter((etapa) => etapa.passos.length > 0);
+}
+
 /* Layout dos passos com muitos campos: evita campo solto em meia coluna. */
 const fieldLayout = {
-  medidas: { grid: 3 },
-  identificacao: {
-    grid: true,
-    order: ["nome", "cpf", "nascimento", "telefone", "email"],
-    wide: ["nome"],
-  },
+  medidas: { grid: true },
 };
 
 const app = document.querySelector("#app");
@@ -517,8 +643,10 @@ function navigate(path) {
 
 /* ------------------------------ peças ------------------------------ */
 
+/* Logotipo oficial em SVG. A marca nunca deve ser remontada em texto: a
+   Ezra nao tem o "&" desenhado do logo nem o espacamento do original. */
 function wordmark() {
-  return `<span class="wordmark">the men&rsquo;s <i>&amp;</i> the ladies</span>`;
+  return `<img class="wordmark" src="/assets/logo-tml.png" alt="the men&rsquo;s &amp; the ladies" width="799" height="60">`;
 }
 
 function icon(type) {
@@ -558,14 +686,20 @@ function renderSelect() {
         return `
         <a class="ps__card ps__card--open" role="listitem" href="${INTRO_PATH}" data-protocol="${item.id}">
           <span class="ps__badge">Aberto agora</span>
-          <h2 class="ps__card-name">${item.nome}</h2>
+          <div class="ps__card-text">
+            <h2 class="ps__card-name">${item.nome}</h2>
+            ${item.subtitulo ? `<p class="ps__card-sub">${item.subtitulo}</p>` : ""}
+          </div>
           <span class="ps__card-cta">Começar avaliação ${icon("arrow")}</span>
         </a>`;
       }
       return `
         <div class="ps__card ps__card--soon" role="listitem" aria-disabled="true">
           <span class="ps__badge ps__badge--soon">Em breve</span>
-          <h2 class="ps__card-name">${item.nome}</h2>
+          <div class="ps__card-text">
+            <h2 class="ps__card-name">${item.nome}</h2>
+            ${item.subtitulo ? `<p class="ps__card-sub">${item.subtitulo}</p>` : ""}
+          </div>
         </div>`;
     })
     .join("");
@@ -581,7 +715,7 @@ function renderSelect() {
 
       <div class="ps__main">
         <p class="eyebrow">Escolha seu protocolo</p>
-        <h1 class="ps__title">Seu Cuidado Começa Com Uma Conversa</h1>
+        <h1 class="ps__title">Qual Tratamento Você Busca?</h1>
         <p class="ps__lede">Um médico avalia suas respostas e indica o tratamento.</p>
 
         <div class="ps__grid" role="list">${cards}</div>
@@ -600,21 +734,42 @@ function renderSelect() {
 
 /* --------------------------- depoimento --------------------------- */
 
-/* Material real, cedido pela cliente. Foto de banco nunca pode ocupar este
-   lugar: seria prova social fabricada. */
-const DEPOIMENTO = {
-  nome: "Laís",
-  arroba: "@laispavese",
-  antes: { arquivo: "depoimento-antes.jpg", alt: "Laís durante uma corrida de rua, antes do tratamento" },
-  depois: { arquivo: "depoimento-depois.jpg", alt: "Laís hoje, depois do tratamento" },
-  paragrafos: [
-    "Perdi 43 kg, e o mais importante que aprendi foi não esperar o resultado final para reconhecer a minha evolução.",
-    "Você não precisa chegar ao peso ideal para valorizar o quanto já andou.",
-  ],
+/* Material real, cedido por quem fez o tratamento. Foto de banco nunca pode
+   ocupar este lugar: seria prova social fabricada. Por isso cada depoimento
+   tem `pronto`: enquanto o material do sexo correspondente não chega, a tela
+   sai do fluxo em vez de mostrar a pessoa do outro sexo. */
+const DEPOIMENTOS = {
+  feminino: {
+    pronto: true,
+    titulo: "A Laís também estava com IMC alto, e conseguiu emagrecer.",
+    nome: "Laís",
+    arroba: "@laispavese",
+    antes: { arquivo: "depoimento-antes.jpg", alt: "Laís durante uma corrida de rua, antes do tratamento" },
+    depois: { arquivo: "depoimento-depois.jpg", alt: "Laís hoje, depois do tratamento" },
+    paragrafos: [
+      "Perdi 43 kg, e o mais importante que aprendi foi não esperar o resultado final para reconhecer a minha evolução.",
+      "Você não precisa chegar ao peso ideal para valorizar o quanto já andou.",
+    ],
+  },
+  /* TODO: fotos e fala de um paciente homem. Ao receber o material, salve as
+     duas fotos em /assets, preencha os campos e troque `pronto` para true. */
+  masculino: {
+    pronto: false,
+    titulo: "",
+    nome: "",
+    arroba: "",
+    antes: { arquivo: "", alt: "" },
+    depois: { arquivo: "", alt: "" },
+    paragrafos: [],
+  },
 };
 
-function depoimento() {
-  const { nome, arroba, antes, depois, paragrafos } = DEPOIMENTO;
+function depoimentoDoSexo() {
+  return getValue("sexo_biologico") === "Masculino" ? DEPOIMENTOS.masculino : DEPOIMENTOS.feminino;
+}
+
+function depoimento(dados) {
+  const { nome, arroba, antes, depois, paragrafos } = dados;
 
   return `
     <section class="dep">
@@ -665,6 +820,18 @@ function renderIntro() {
       "O protocolo é liberado",
       "Com a indicação médica, você finaliza o pedido na plataforma parceira e recebe em casa.",
       "",
+    ],
+    [
+      "chat",
+      "Acompanhamento semanal com a nutricionista",
+      "Toda semana você fala com a nutricionista do time: ajuste da alimentação, dúvidas do dia a dia e o que fazer para o resultado se sustentar.",
+      "TODA SEMANA",
+    ],
+    [
+      "shield",
+      "Acompanhamento médico até o fim do protocolo",
+      "O médico reavalia a sua resposta ao tratamento, ajusta a dose quando for preciso e orienta sobre efeitos colaterais.",
+      "DURANTE O TRATAMENTO",
     ],
   ];
 
@@ -857,7 +1024,9 @@ function fieldMarkup(field, step, layout) {
   const saved = getValue(field.key) || "";
   const label = field.label ? `<label class="cq__label" for="${field.key}">${field.label}</label>` : "";
   const inputMode = field.type === "tel" ? "tel" : field.type === "number" ? "decimal" : "";
-  const revealValues = field.revealValues ? ` data-reveal-values="${field.revealValues.join("|")}" hidden` : "";
+  const revealValues = field.revealValues
+    ? ` data-reveal-values="${field.revealValues.join("|")}" data-reveal-from="${field.revealFrom || ""}" hidden`
+    : "";
   const attrs = [
     `id="${field.key}"`,
     `name="${field.key}"`,
@@ -885,9 +1054,23 @@ function fieldMarkup(field, step, layout) {
   `;
 }
 
+/* `options` aceita array de strings ou função, para faixas que dependem de
+   uma resposta anterior. Cada opção pode ser `{ value, detail }`: o value é
+   o que fica gravado, o detail é só a linha de apoio. */
+function stepOptions(step) {
+  const raw = typeof step.options === "function" ? step.options() : step.options;
+  return (raw || []).map((option) => (typeof option === "string" ? { value: option, detail: "" } : option));
+}
+
+/* Título também pode ser função: o depoimento troca de nome com o sexo. */
+function stepTitle(step) {
+  return typeof step.title === "function" ? step.title() : step.title;
+}
+
 function optionMarkup(step, selected) {
+  const options = stepOptions(step);
   /* Listas longas vão para duas colunas: mantém tudo na primeira tela. */
-  const dense = step.options.length > 6 ? " cq__options--dense" : "";
+  const dense = options.length > 6 ? " cq__options--dense" : "";
   const multi = step.kind === "multiple" ? " cq__options--multi" : "";
 
   const hint = step.kind === "multiple" ? `<p class="cq__multi-hint">Selecione todas que se aplicam</p>` : "";
@@ -895,14 +1078,46 @@ function optionMarkup(step, selected) {
   return `
     ${hint}
     <div class="cq__options${dense}${multi}" role="group">
-      ${step.options
-        .map((option) => {
-          const pressed = Array.isArray(selected) ? selected.includes(option) : selected === option;
-          return `<button class="cq__option" type="button" value="${option}" aria-pressed="${pressed}" data-option>${option}</button>`;
+      ${options
+        .map(({ value, detail }) => {
+          const pressed = Array.isArray(selected) ? selected.includes(value) : selected === value;
+          return `<button class="cq__option" type="button" value="${value}" aria-pressed="${pressed}" data-option><span class="cq__option-text">${value}${
+            detail ? `<span class="cq__option-detail">${detail}</span>` : ""
+          }</span></button>`;
         })
         .join("")}
     </div>
   `;
+}
+
+/* Subgrupo: pergunta encadeada dentro da mesma tela. Fica entre as opcoes
+   principais e os campos de texto, e cada um pode ser revelado pela resposta
+   principal (`reveal.values`) ou por outro subgrupo (`reveal.from`). */
+function subgruposMarkup(step) {
+  return (step.subgrupos || [])
+    .map((grupo) => {
+      const escolhido = getValue(grupo.key);
+      const marcados = Array.isArray(escolhido) ? escolhido : escolhido ? [escolhido] : [];
+      const dense = grupo.options.length > 6 ? " cq__options--dense" : "";
+      const multi = grupo.multiple ? " cq__options--multi" : "";
+      return `
+        <div class="cq__sub" data-sub-wrap data-sub-key="${grupo.key}" data-sub-source="${
+          grupo.reveal?.from || step.field
+        }" data-sub-values="${(grupo.reveal?.values || []).join("|")}" hidden>
+          <p class="cq__sub-label">${grupo.label}</p>
+          <div class="cq__options${dense}${multi}" role="group">
+            ${grupo.options
+              .map(
+                (option) =>
+                  `<button class="cq__option" type="button" value="${option}" aria-pressed="${marcados.includes(
+                    option
+                  )}" data-sub-option data-sub-of="${grupo.key}">${option}</button>`
+              )
+              .join("")}
+          </div>
+        </div>`;
+    })
+    .join("");
 }
 
 function digits(text) {
@@ -1019,14 +1234,31 @@ function silhueta(tipo) {
   return `<img src="/assets/${img.arquivo}" alt="${img.alt}" width="300" height="460" decoding="async">`;
 }
 
+/* Um passo pode trazer os proprios slots (o exame, por exemplo); sem isso
+   valem os dois slots de foto do corpo. */
+function slotsDoPasso(step) {
+  return step?.slots || PHOTO_SLOTS;
+}
+
+function slotPorChave(key) {
+  return steps.flatMap((step) => step.slots || []).find((slot) => slot.key === key) || PHOTO_SLOTS.find((slot) => slot.key === key);
+}
+
 function photoCard(slot) {
   const meta = photoMeta(slot.key);
   const enviada = !!meta;
+  const tipos = (slot.tipos || PHOTO_TYPES).join(",");
 
   return `
     <div class="ph__card${enviada ? " ph__card--done" : ""}" data-slot="${slot.key}">
       <div class="ph__thumb" data-thumb>
-        ${enviada ? "" : `<span class="ph__silhueta">${silhueta(slot.silhueta)}</span>`}
+        ${
+          enviada
+            ? ""
+            : slot.silhueta
+              ? `<span class="ph__silhueta">${silhueta(slot.silhueta)}</span>`
+              : `<span class="ph__arquivo">${icon("folder")}</span>`
+        }
       </div>
       <h2 class="ph__label">${slot.label}</h2>
 
@@ -1036,7 +1268,7 @@ function photoCard(slot) {
       </label>
       <label class="btn ph__btn ph__btn--ghost">
         ${icon("folder")} Escolher arquivo
-        <input type="file" accept="image/jpeg,image/png" data-input hidden>
+        <input type="file" accept="${tipos}" data-input hidden>
       </label>
 
       <p class="ph__status" data-status>
@@ -1048,11 +1280,23 @@ function photoCard(slot) {
   `;
 }
 
-function photosMarkup() {
+function photosMarkup(step) {
   return `
     <div class="ph">
-      <div class="ph__grid">${PHOTO_SLOTS.map(photoCard).join("")}</div>
-      <p class="ph__hint">${icon("image")} JPG ou PNG · até 5 MB cada</p>
+      <div class="ph__grid">${slotsDoPasso(step).map(photoCard).join("")}</div>
+      <p class="ph__hint">${icon("image")} ${step?.slotsHint || "JPG ou PNG · até 5 MB cada"}</p>
+    </div>
+  `;
+}
+
+/* Área de anexo pendurada numa pergunta de opção: usa o mesmo
+   data-field-wrap dos campos revelados, entao aparece e desaparece junto com
+   a resposta sem nenhuma fiação extra. */
+function slotsMarkup(step) {
+  if (!step.slots || step.kind === "photos") return "";
+  return `
+    <div class="cq__anexo" data-field-wrap data-reveal-values="${(step.slotsReveal || []).join("|")}" data-reveal-from="" hidden>
+      ${photosMarkup(step)}
     </div>
   `;
 }
@@ -1061,6 +1305,7 @@ function wirePhotosStep(step, goNext, setEnabled) {
   /* Fotos são opcionais: o Continuar nunca fica travado. */
   setEnabled(true);
 
+
   const cards = [...document.querySelectorAll("[data-slot]")];
 
   const pintar = async (card) => {
@@ -1068,6 +1313,11 @@ function wirePhotosStep(step, goNext, setEnabled) {
     const thumb = card.querySelector("[data-thumb]");
     const meta = photoMeta(key);
     if (!meta || !photoStorageAvailable()) return;
+    /* PDF nao tem miniatura: mostra o icone de arquivo e para aqui. */
+    if (!String(meta.tipo || "").startsWith("image/")) {
+      thumb.innerHTML = `<span class="ph__arquivo">${icon("folder")}</span>`;
+      return;
+    }
     try {
       const blob = await loadPhoto(key);
       if (!blob) return;
@@ -1100,8 +1350,10 @@ function wirePhotosStep(step, goNext, setEnabled) {
           erro(card, "Este navegador nao permite guardar a foto.");
           return;
         }
-        if (!PHOTO_TYPES.includes(file.type)) {
-          erro(card, "Formato não aceito. Envie JPG ou PNG.");
+        const slot = slotsDoPasso(step).find((item) => item.key === key);
+        const tipos = slot?.tipos || PHOTO_TYPES;
+        if (!tipos.includes(file.type)) {
+          erro(card, `Formato não aceito. Envie ${tipos.includes("application/pdf") ? "JPG, PNG ou PDF" : "JPG ou PNG"}.`);
           return;
         }
         if (file.size > PHOTO_MAX_BYTES) {
@@ -1117,8 +1369,7 @@ function wirePhotosStep(step, goNext, setEnabled) {
           return;
         }
 
-        const slot = PHOTO_SLOTS.find((item) => item.key === key);
-        saveAnswer(key, slot.label, { nome: file.name, bytes: file.size, tipo: file.type });
+        saveAnswer(key, slot?.label || step.label, { nome: file.name, bytes: file.size, tipo: file.type });
         navigate(window.location.pathname);
       });
     });
@@ -1192,7 +1443,7 @@ function emRevisao() {
 }
 
 const PRONTUARIO = [
-  { titulo: "Identificação", campos: ["nome", "cpf", "nascimento", "telefone", "email"] },
+  { titulo: "Identificação", campos: ["nome", "telefone", "email", "nascimento", "cpf"] },
   { titulo: "Perfil", campos: ["sexo_biologico", "grávida_amamentando"] },
   { titulo: "Medidas e meta", campos: ["peso_atual", "peso_meta", "altura", "meta_perda"], imc: true },
   {
@@ -1227,20 +1478,24 @@ const PRONTUARIO = [
     titulo: "Medicamentos e alergias",
     campos: [
       "medicamentos_diabetes",
+      "medicamentos_diabetes_quais",
       "toma_medicamento",
       "medicamentos_descricao",
       "medicamento_suplemento_30d",
       "medicamento_suplemento_30d_quais",
       "semaglutida_tirzepatida",
+      "semaglutida_tirzepatida_qual",
+      "semaglutida_tirzepatida_emagreceu",
       "semaglutida_tirzepatida_relato",
-      "alergia",
-      "alergia_qual",
+      "colateral",
+      "colateral_quais",
+      "colateral_relato",
     ],
   },
   { titulo: "Tentativas anteriores", campos: ["tempo_tentando", "tentativas"] },
-  { titulo: "Preferências", campos: ["preferência_tratamento", "via_tratamento", "dosagem_baixa"] },
-  { titulo: "Anexos", campos: ["tem_exame", "corpo_frente", "corpo_lado"], anexos: true },
-  { titulo: "Observações", campos: ["informacoes_medico"] },
+  { titulo: "Preferências", campos: ["preferência_tratamento", "dosagem_baixa"] },
+  { titulo: "Anexos", campos: ["tem_exame", "exame_arquivo", "corpo_frente", "corpo_lado"], anexos: true },
+  { titulo: "Observações", campos: ["informacoes_medico", "informacoes_medico_relato"] },
 ];
 
 /* Um campo pode ser o próprio passo (sexo_biologico) ou um input dentro de
@@ -1248,8 +1503,19 @@ const PRONTUARIO = [
 function pathDoCampo(key) {
   const direto = steps.find((step) => step.field === key);
   if (direto) return direto.path;
-  const dono = steps.find((step) => (step.fields || []).some((field) => field.key === key));
+  const dono = donoDoCampo(key);
   return dono ? dono.path : null;
+}
+
+/* O passo que fez a pergunta: pode ser o proprio passo, um campo de texto
+   dentro dele, um subgrupo encadeado ou um slot de anexo. */
+function donoDoCampo(key) {
+  return (
+    steps.find((step) => step.field === key) ||
+    steps.find((step) => (step.fields || []).some((field) => field.key === key)) ||
+    steps.find((step) => (step.subgrupos || []).some((grupo) => grupo.key === key)) ||
+    steps.find((step) => (step.slots || []).some((slot) => slot.key === key))
+  );
 }
 
 function valorLegivel(key) {
@@ -1268,11 +1534,12 @@ function valorLegivel(key) {
 function rotuloDoCampo(key) {
   const registro = readState()[key];
   if (registro?.rotulo && registro.rotulo !== "x") return registro.rotulo;
-  const slot = PHOTO_SLOTS.find((item) => item.key === key);
+  const slot = slotPorChave(key);
   if (slot) return slot.label;
-  const dono = steps.find((step) => (step.fields || []).some((field) => field.key === key));
-  const campo = dono?.fields.find((field) => field.key === key);
-  return campo?.label || dono?.label || key;
+  const dono = donoDoCampo(key);
+  const campo = (dono?.fields || []).find((field) => field.key === key);
+  const grupo = (dono?.subgrupos || []).find((item) => item.key === key);
+  return campo?.label || grupo?.label || dono?.label || key;
 }
 
 /* Um campo "esperado" é o que o fluxo realmente pediu a esta pessoa: o passo
@@ -1280,22 +1547,29 @@ function rotuloDoCampo(key) {
    só conta se a opção que o revela foi escolhida. Sem isso o prontuário
    acusaria falta de resposta em pergunta que nunca apareceu. */
 function campoEsperado(key) {
-  const dono =
-    steps.find((step) => step.field === key) ||
-    steps.find((step) => (step.fields || []).some((field) => field.key === key));
+  const dono = donoDoCampo(key);
   if (!dono) return false;
   if (!matchesCondition(dono.showIf)) return false;
   if (dono.optional || dono.kind === "photos" || isInterstitial(dono)) return false;
   if (dono.field === key) return true;
 
+  const grupo = (dono.subgrupos || []).find((item) => item.key === key);
+  if (grupo) return valoresDeOrigem(grupo.reveal?.from || dono.field).some((valor) => (grupo.reveal?.values || []).includes(valor));
+
   const campo = (dono.fields || []).find((field) => field.key === key);
   if (!campo) return false;
   if (campo.revealValues) {
-    const escolhido = getValue(dono.field);
-    const valores = Array.isArray(escolhido) ? escolhido : [escolhido];
+    const valores = valoresDeOrigem(campo.revealFrom || dono.field);
+    if (campo.revealValues.includes("*")) return valores.length > 0;
     return campo.revealValues.some((valor) => valores.includes(valor));
   }
   return !!campo.required;
+}
+
+function valoresDeOrigem(key) {
+  const valor = getValue(key);
+  if (Array.isArray(valor)) return valor;
+  return valor ? [valor] : [];
 }
 
 function linhaProntuario(key, esperado) {
@@ -1431,7 +1705,10 @@ function renderDone() {
 function renderStep(index) {
   const flow = visibleSteps();
   const step = flow[index] || flow[0];
-  const progress = `${((index + 1) / flow.length) * 100}%`;
+  const etapas = etapasDoFluxo(flow);
+  const etapaAtual = etapas.findIndex((item) => item.passos.includes(step));
+  const etapa = etapas[etapaAtual];
+  const dentroDaEtapa = etapa ? etapa.passos.indexOf(step) + 1 : 0;
   const selected = getValue(step.field);
   const showBack = index > 0;
   const protocolo = getProtocol();
@@ -1449,27 +1726,40 @@ function renderStep(index) {
   const startsEnabled = interstitial || step.kind === "photos";
   const revisao = emRevisao();
 
+  /* Um segmento por etapa, com peso proporcional ao número de passos: a
+     etapa curta não finge ser longa. */
+  const barra = etapas
+    .map((item, i) => {
+      const preenchido = i < etapaAtual ? "100%" : i === etapaAtual ? `${(dentroDaEtapa / item.passos.length) * 100}%` : "0%";
+      return `<span class="cq__bar-seg" style="flex-grow:${item.passos.length};--seg:${preenchido}" title="${item.nome}"><i></i></span>`;
+    })
+    .join("");
+
   app.innerHTML = `
-    <main class="cq" style="--progress:${progress}">
+    <main class="cq">
       <header class="cq__top">
         <div class="cq__top-inner">
           ${wordmark()}
           <div class="cq__meta">
-            <span class="cq__protocol">${protocolo.nome}</span>
+            ${etapa ? `<span class="cq__protocol">Etapa ${etapaAtual + 1}/${etapas.length}</span>` : ""}
+            ${etapa ? `<span class="cq__meta-sep" aria-hidden="true"></span><span class="cq__etapa-nome">${etapa.nome}</span>` : ""}
             ${rotuloMeta ? `<span class="cq__meta-sep" aria-hidden="true"></span><span>${rotuloMeta}</span>` : ""}
           </div>
         </div>
-        <div class="cq__bar" role="progressbar" aria-valuemin="1" aria-valuemax="${flow.length}" aria-valuenow="${index + 1}">
-          <span></span>
+        <div class="cq__bar" role="progressbar" aria-valuemin="1" aria-valuemax="${flow.length}" aria-valuenow="${
+          index + 1
+        }" aria-valuetext="${etapa ? `Etapa ${etapaAtual + 1} de ${etapas.length}: ${etapa.nome}` : ""}">
+          ${barra}
         </div>
       </header>
 
       <div class="cq__body">
         <div class="cq__body-inner">
-          <h1 class="cq__question">${step.title}</h1>
+          <h1 class="cq__question">${stepTitle(step)}</h1>
           ${step.help ? `<p class="cq__help">${step.help}</p>` : ""}
           ${whyButton(step)}
           ${renderControls(step, selected)}
+          ${step.aviso ? `<p class="cq__aviso">${icon("alert")}<span>${step.aviso}</span></p>` : ""}
         </div>
       </div>
 
@@ -1505,9 +1795,9 @@ function renderControls(step, selected) {
     return (step.body || []).map((paragraph) => `<p class="cq__text">${paragraph}</p>`).join("");
   }
 
-  if (step.kind === "photos") return photosMarkup();
+  if (step.kind === "photos") return photosMarkup(step);
 
-  if (step.kind === "single" || step.kind === "multiple") return optionMarkup(step, selected);
+  if (step.kind === "single" || step.kind === "multiple") return `${optionMarkup(step, selected)}${slotsMarkup(step)}`;
 
   const layout = fieldLayout[step.field];
   const ordered = layout?.order
@@ -1518,6 +1808,7 @@ function renderControls(step, selected) {
   if (step.kind === "singleWithText") {
     return `
       ${optionMarkup(step, selected)}
+      ${subgruposMarkup(step)}
       <div class="cq__field cq__field--nested">
         ${step.fields.map((field) => fieldMarkup(field, step)).join("")}
       </div>
@@ -1581,6 +1872,9 @@ function wireStep(index) {
 
   if (step.kind === "single" || step.kind === "multiple" || step.kind === "singleWithText") {
     wireOptionsStep(step, goNext, setEnabled);
+    /* O anexo nao manda no Continuar: quem decide é a resposta da pergunta,
+       por isso o setEnabled aqui é um no-op. */
+    if (step.slots) wirePhotosStep(step, goNext, () => {});
     return;
   }
 
@@ -1597,13 +1891,39 @@ function wireInterstitialStep(nextButton, setEnabled) {
 function wireOptionsStep(step, goNext, setEnabled) {
   const buttons = [...document.querySelectorAll("[data-option]")];
   const inputs = [...document.querySelectorAll(".cq__input")];
+  const subWraps = [...document.querySelectorAll("[data-sub-wrap]")];
+  const subButtons = [...document.querySelectorAll("[data-sub-option]")];
+
+  const subGrupo = (key) => (step.subgrupos || []).find((grupo) => grupo.key === key);
+
+  const subValores = (key) =>
+    subButtons.filter((button) => button.dataset.subOf === key && button.getAttribute("aria-pressed") === "true").map((button) => button.value);
+
+  /* Cascata: um subgrupo escondido perde a resposta antes de o proximo ser
+     avaliado, senao "Emagreceu?" continuaria de pe depois de voltar para
+     "Nunca usei". A ordem do DOM e a ordem do array de subgrupos. */
+  const updateSubVisibility = (chosen) => {
+    subWraps.forEach((wrap) => {
+      const origem = wrap.dataset.subSource === step.field ? chosen : subValores(wrap.dataset.subSource);
+      const valores = (wrap.dataset.subValues || "").split("|").filter(Boolean);
+      const show = valores.some((valor) => origem.includes(valor));
+      wrap.hidden = !show;
+      if (!show) {
+        wrap.querySelectorAll("[data-sub-option]").forEach((button) => button.setAttribute("aria-pressed", "false"));
+        clearAnswer(wrap.dataset.subKey);
+      }
+    });
+  };
 
   const updateFieldsVisibility = () => {
     const selectedValues = buttons.filter((button) => button.getAttribute("aria-pressed") === "true").map((button) => button.value);
     document.querySelectorAll("[data-field-wrap]").forEach((wrap) => {
       const reveal = wrap.dataset.revealValues;
       if (!reveal) return;
-      const show = reveal.split("|").some((value) => selectedValues.includes(value));
+      const from = wrap.dataset.revealFrom;
+      const origem = from ? subValores(from) : selectedValues;
+      const pedidos = reveal.split("|");
+      const show = pedidos.includes("*") ? origem.length > 0 : pedidos.some((value) => origem.includes(value));
       wrap.hidden = !show;
       wrap.querySelectorAll(".cq__input").forEach((input) => {
         input.hidden = !show;
@@ -1615,9 +1935,19 @@ function wireOptionsStep(step, goNext, setEnabled) {
   const update = () => {
     const chosen = buttons.filter((button) => button.getAttribute("aria-pressed") === "true").map((button) => button.value);
     saveAnswer(step.field, step.label, step.kind === "multiple" ? chosen : chosen[0] || "");
+    updateSubVisibility(chosen);
     updateFieldsVisibility();
 
     let enabled = chosen.length > 0;
+
+    subWraps.forEach((wrap) => {
+      if (wrap.hidden) return;
+      const key = wrap.dataset.subKey;
+      const grupo = subGrupo(key);
+      const marcados = subValores(key);
+      saveAnswer(key, grupo?.label || step.label, grupo?.multiple ? marcados : marcados[0] || "");
+      if (!marcados.length) enabled = false;
+    });
     inputs.forEach((input) => {
       const wrap = input.closest("[data-field-wrap]");
       if (wrap?.hidden) return;
@@ -1649,6 +1979,22 @@ function wireOptionsStep(step, goNext, setEnabled) {
         buttons
           .filter((item) => item.value === step.exclusive)
           .forEach((item) => item.setAttribute("aria-pressed", "false"));
+      }
+      update();
+    });
+  });
+
+  subButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const grupo = subGrupo(button.dataset.subOf);
+      const pressed = button.getAttribute("aria-pressed") === "true";
+      if (grupo?.multiple) {
+        button.setAttribute("aria-pressed", pressed ? "false" : "true");
+      } else {
+        subButtons
+          .filter((item) => item.dataset.subOf === button.dataset.subOf)
+          .forEach((item) => item.setAttribute("aria-pressed", "false"));
+        button.setAttribute("aria-pressed", "true");
       }
       update();
     });

@@ -88,37 +88,166 @@ console.log("\n1. cálculo de IMC");
 }
 
 /* ------------------------------------------------------------------ */
-console.log("\n1b. peso, meta e altura na mesma tela");
+console.log("\n1b. peso atual, depois meta e altura");
 {
+  /* O peso atual vem sozinho e antes da meta: as faixas em quilos da meta
+     de perda saem dele. */
+  const peso = boot(rotaDe("peso_atual"));
+  const camposPeso = [...peso.doc.querySelectorAll("[data-field-key]")].map((f) => f.dataset.fieldKey);
+  check("peso atual sozinho na tela", camposPeso.join(",") === "peso_atual", camposPeso.join(","));
+  check("vem antes da meta de perda", rotaDe("peso_atual") < rotaDe("meta_perda"), "ordem trocada");
+  check("Continuar travado sem o peso", peso.doc.querySelector("[data-next]").getAttribute("aria-disabled") === "true");
+
+  /* Faixa em quilos calculada sobre o peso informado. */
+  const metaSemPeso = boot(rotaDe("meta_perda"));
+  check("sem peso, a opcao nao inventa quilo", !metaSemPeso.doc.querySelector(".cq__option-detail"));
+  const meta = boot(rotaDe("meta_perda"), { peso_atual: resposta("100") });
+  const detalhes = [...meta.doc.querySelectorAll(".cq__option-detail")].map((d) => d.textContent.trim());
+  check("cada faixa mostra o quilo", detalhes.length === 3, detalhes.join(" | "));
+  check("5% de 100 kg = ate 5 kg", (detalhes[0] || "").includes("5 kg"), detalhes[0]);
+  check("faixa do meio de 6 a 15 kg", (detalhes[1] || "").includes("6 kg") && (detalhes[1] || "").includes("15 kg"), detalhes[1]);
+  check("acima de 16 kg ou mais", (detalhes[2] || "").includes("16 kg"), detalhes[2]);
+  check(
+    "o valor gravado continua sendo a faixa",
+    [...meta.doc.querySelectorAll("[data-option]")].every((o) => o.value.includes("%"))
+  );
+
   const { doc, window, erros } = boot(rotaDe("medidas"));
   const campos = [...doc.querySelectorAll("[data-field-key]")].map((f) => f.dataset.fieldKey);
-  check("os tres campos numa tela", campos.join(",") === "peso_atual,peso_meta,altura", campos.join(","));
-  check("em tres colunas", !!doc.querySelector(".cq__grid-3"));
-  check("cada um com rotulo", doc.querySelectorAll(".cq__label").length === 3);
+  check("meta e altura na mesma tela", campos.join(",") === "peso_meta,altura", campos.join(","));
+  check("em duas colunas", !!doc.querySelector(".cq__grid-2"));
+  check("cada um com rotulo", doc.querySelectorAll(".cq__label").length === 2);
   check(
-    "sufixos kg, kg e cm",
-    [...doc.querySelectorAll(".cq__unit")].map((u) => u.textContent.trim()).join(",") === "kg,kg,cm"
+    "sufixos kg e cm",
+    [...doc.querySelectorAll(".cq__unit")].map((u) => u.textContent.trim()).join(",") === "kg,cm"
   );
+  check("avisa da altura sem pontuacao", (doc.querySelector(".cq__aviso")?.textContent || "").includes("175"));
   check(
     "todos obrigatorios",
     [...doc.querySelectorAll(".cq__input")].every((i) => i.hasAttribute("data-required"))
   );
   check("Continuar comeca travado", doc.querySelector("[data-next]").getAttribute("aria-disabled") === "true");
 
-  for (const [id, valor] of [["peso_atual", "92"], ["peso_meta", "78"], ["altura", "178"]]) {
+  for (const [id, valor] of [["peso_meta", "78"], ["altura", "178"]]) {
     const input = doc.getElementById(id);
     input.value = valor;
     input.dispatchEvent(new window.Event("input", { bubbles: true }));
   }
-  check("destrava com os tres preenchidos", doc.querySelector("[data-next]").getAttribute("aria-disabled") === "false");
+  check("destrava com os dois preenchidos", doc.querySelector("[data-next]").getAttribute("aria-disabled") === "false");
 
   const estado = JSON.parse(window.localStorage.getItem("tl-consulta-emagrecimento") || "{}");
-  check("grava nas chaves antigas", ["peso_atual", "peso_meta", "altura"].every((k) => estado[k]));
-  check(
-    "os passos separados nao existem mais",
-    !window.__api.steps.some((s) => ["peso_atual", "peso_meta", "altura"].includes(s.field))
-  );
+  check("grava nas chaves antigas", ["peso_meta", "altura"].every((k) => estado[k]));
   check("sem erro de runtime", erros.length === 0, erros.join(" | "));
+}
+
+/* ------------------------------------------------------------------ */
+console.log("\n1c. barra por etapas");
+{
+  const { doc } = boot(rotaDe("identificacao"));
+  const segmentos = [...doc.querySelectorAll(".cq__bar-seg")];
+  check("a barra tem um segmento por etapa", segmentos.length >= 5, String(segmentos.length));
+  check("primeira etapa em andamento", (segmentos[0]?.getAttribute("style") || "").includes("--seg:"));
+  check("as seguintes vazias", (segmentos[1]?.getAttribute("style") || "").includes("--seg:0%"));
+  check("o cabecalho diz a etapa", /Etapa 1\//.test(doc.querySelector(".cq__meta").textContent));
+  check("e o nome dela", (doc.querySelector(".cq__etapa-nome")?.textContent || "").length > 3);
+
+  const fim = boot(rotaDe("cpf"));
+  const ultimos = [...fim.doc.querySelectorAll(".cq__bar-seg")];
+  check("na ultima etapa as anteriores estao cheias", (ultimos[0]?.getAttribute("style") || "").includes("--seg:100%"));
+  check(
+    "e o contador de etapa chegou no fim",
+    /Etapa (\d+)\/\1/.test(fim.doc.querySelector(".cq__meta").textContent),
+    fim.doc.querySelector(".cq__meta").textContent.trim()
+  );
+}
+
+/* ------------------------------------------------------------------ */
+console.log("\n1d. perguntas encadeadas na mesma tela");
+{
+  /* Uso anterior: "Sim" abre qual dos dois, e a escolha abre "Emagreceu?". */
+  const { doc, window } = boot(rotaDe("semaglutida_tirzepatida"));
+  const subs = [...doc.querySelectorAll("[data-sub-wrap]")];
+  check("dois subgrupos no DOM", subs.length === 2, String(subs.length));
+  check("ambos escondidos no comeco", subs.every((s) => s.hidden));
+
+  const sim = [...doc.querySelectorAll("[data-option]")].find((o) => o.value === "Sim");
+  sim.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+  check("o Sim abre qual dos dois", !doc.querySelector('[data-sub-key="semaglutida_tirzepatida_qual"]').hidden);
+  check("mas ainda nao o Emagreceu", doc.querySelector('[data-sub-key="semaglutida_tirzepatida_emagreceu"]').hidden);
+  check("Continuar travado enquanto falta o qual", doc.querySelector("[data-next]").getAttribute("aria-disabled") === "true");
+
+  const qual = doc.querySelector('[data-sub-of="semaglutida_tirzepatida_qual"]');
+  qual.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+  check("escolher o medicamento abre o Emagreceu", !doc.querySelector('[data-sub-key="semaglutida_tirzepatida_emagreceu"]').hidden);
+
+  const emagreceu = doc.querySelector('[data-sub-of="semaglutida_tirzepatida_emagreceu"]');
+  emagreceu.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+  const estado = () => JSON.parse(window.localStorage.getItem("tl-consulta-emagrecimento") || "{}");
+  check("grava as tres respostas", ["semaglutida_tirzepatida", "semaglutida_tirzepatida_qual", "semaglutida_tirzepatida_emagreceu"].every((k) => estado()[k]));
+
+  /* Voltar para "Nunca usei" nao pode deixar resposta orfa. */
+  const nunca = [...doc.querySelectorAll("[data-option]")].find((o) => o.value === "Nunca usei");
+  nunca.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+  check(
+    "trocar para Nunca usei limpa a cascata",
+    !estado().semaglutida_tirzepatida_qual && !estado().semaglutida_tirzepatida_emagreceu
+  );
+
+  /* Efeito colateral: "Sim" abre a lista, e a lista abre a caixa de texto. */
+  const col = boot(rotaDe("colateral"));
+  check("a pergunta virou efeito colateral", col.doc.querySelector(".cq__question").textContent.includes("colateral"));
+  const colSim = [...col.doc.querySelectorAll("[data-option]")].find((o) => o.value === "Sim");
+  colSim.dispatchEvent(new col.window.MouseEvent("click", { bubbles: true }));
+  const lista = col.doc.querySelector('[data-sub-key="colateral_quais"]');
+  check("o Sim abre a lista de exemplos", !lista.hidden);
+  check("a caixa de texto ainda esta fechada", col.doc.querySelector('[data-field-key="colateral_relato"]').hidden);
+  const doisPrimeiros = [...col.doc.querySelectorAll('[data-sub-of="colateral_quais"]')].slice(0, 2);
+  doisPrimeiros.forEach((b) => b.dispatchEvent(new col.window.MouseEvent("click", { bubbles: true })));
+  check("aceita mais de um efeito", doisPrimeiros.every((b) => b.getAttribute("aria-pressed") === "true"));
+  check("escolher um efeito abre a caixa", !col.doc.querySelector('[data-field-key="colateral_relato"]').hidden);
+  check("a alergia saiu do fluxo", !col.window.__api.steps.some((s) => s.field === "alergia"));
+  check("a via de tratamento saiu do fluxo", !col.window.__api.steps.some((s) => s.field === "via_tratamento"));
+  check("a tela de validacao saiu do fluxo", !col.window.__api.steps.some((s) => s.field === "info_validacao"));
+}
+
+/* ------------------------------------------------------------------ */
+console.log("\n1e. identificacao, e-mail e CPF");
+{
+  const ident = boot(rotaDe("identificacao"));
+  const campos = [...ident.doc.querySelectorAll("[data-field-key]")].map((f) => f.dataset.fieldKey);
+  check("identificacao pede so nome e telefone", campos.join(",") === "nome,telefone", campos.join(","));
+
+  const email = boot(rotaDe("email"));
+  check("o e-mail virou tela propria", email.doc.querySelector(".cq__input")?.type === "email");
+  check("e vem antes das horas de sono", rotaDe("email") < rotaDe("horas_sono"), "ordem trocada");
+
+  const cpf = boot(rotaDe("cpf"));
+  check("o CPF vem depois das fotos", rotaDe("cpf") > rotaDe("fotos_corpo"), "ordem trocada");
+  check("e explica que e da prescricao", (cpf.doc.querySelector(".cq__help")?.textContent || "").includes("prescri"));
+
+  const nasc = boot(rotaDe("nascimento"));
+  check("a idade virou tela propria", nasc.doc.querySelector(".cq__input")?.type === "date");
+  check("com o titulo da idade", nasc.doc.querySelector(".cq__question").textContent.includes("idade"));
+}
+
+/* ------------------------------------------------------------------ */
+console.log("\n1f. exame anexado na propria pergunta");
+{
+  const { doc, window } = boot(rotaDe("tem_exame"));
+  const area = doc.querySelector(".cq__anexo");
+  check("a area de envio existe", !!area);
+  check("escondida antes da resposta", area.hidden);
+  const sim = [...doc.querySelectorAll("[data-option]")].find((o) => o.value === "Sim");
+  sim.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+  check("o Sim abre a area de envio", !doc.querySelector(".cq__anexo").hidden);
+  check("com um card de arquivo", doc.querySelectorAll(".cq__anexo .ph__card").length === 1);
+  check("aceita PDF", (doc.querySelector(".cq__anexo .ph__btn--ghost [data-input]")?.accept || "").includes("pdf"));
+  check("sem silhueta de corpo", !doc.querySelector(".cq__anexo .ph__silhueta"));
+  check("nao avanca sozinho", window.location.pathname === rotaDe("tem_exame"));
+
+  const nao = [...doc.querySelectorAll("[data-option]")].find((o) => o.value === "N\u00e3o");
+  nao.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+  check("o Nao fecha a area de envio", doc.querySelector(".cq__anexo").hidden);
 }
 
 /* ------------------------------------------------------------------ */
@@ -321,7 +450,11 @@ console.log("\n9. depoimento dentro do questionario");
 {
   const intro = boot("/pages/consultorio-inicio");
   check("resumo do GLP-1 saiu da intro", !intro.doc.body.textContent.includes("GLP-1"));
-  check("nao sobrou bloco de descricao vazio", !intro.doc.querySelector(".ci__desc"));
+  const desc = intro.doc.querySelector(".ci__desc");
+  check("a descricao do protocolo nao fica vazia", !desc || desc.textContent.trim().length > 20, desc?.textContent);
+  check("a intro fala do acompanhamento", /acompanhamento/i.test(intro.doc.body.textContent));
+  check("e cita a nutricionista", /nutricionista/i.test(intro.doc.body.textContent));
+  check("com as cinco etapas do processo", intro.doc.querySelectorAll(".ci__step").length === 5, String(intro.doc.querySelectorAll(".ci__step").length));
   check("depoimento nao esta mais na intro", !intro.doc.querySelector(".dep"));
 
   /* Agora e uma tela do questionario. */
@@ -332,8 +465,7 @@ console.log("\n9. depoimento dentro do questionario");
   const passo = window.__api.visibleSteps().find((s) => s.path === window.location.pathname);
   check("a tela certa abriu", passo && passo.field === "info_depoimento", passo && passo.field);
   check("nao mostra rotulo no cabecalho", !doc.querySelector(".cq__meta").textContent.includes("Quem já passou"));
-  check("nem o separador solto", doc.querySelectorAll(".cq__meta .cq__meta-sep").length === 0);
-  check("o protocolo continua no cabecalho", doc.querySelector(".cq__protocol").textContent.trim() === "Emagrecimento");
+  check("o cabecalho mostra a etapa", /Etapa \d+\//.test(doc.querySelector(".cq__protocol").textContent));
   check("Continuar nasce habilitado", doc.querySelector("[data-next]").getAttribute("aria-disabled") === "false");
 
   const dep = doc.querySelector(".dep");
@@ -355,8 +487,20 @@ console.log("\n9. depoimento dentro do questionario");
   );
   check("fala enxuta, dois parágrafos", doc.querySelectorAll(".dep__fala p").length === 2);
   check("abre com os 43 kg", doc.querySelector(".dep__fala p").textContent.includes("43 kg"));
-  check("o dia 1 ficou no titulo da tela", doc.querySelector(".cq__question").textContent.includes("Comemore o seu dia 1"));
+  check("o titulo fala do IMC alto da Lais", doc.querySelector(".cq__question").textContent.includes("IMC alto"));
   check("nao repete o dia 1 na fala", !doc.querySelector(".dep__fala").textContent.includes("dia 1"));
+
+  /* Sem material de homem, a tela sai do fluxo em vez de mostrar a Lais
+     para um homem. */
+  const homem = boot(rotaDe("info_depoimento"), {
+    sexo_biologico: resposta("Masculino"),
+    peso_atual: resposta("92"),
+    altura: resposta("178"),
+  });
+  check(
+    "homem nao ve o depoimento da Lais",
+    !homem.doc.querySelector(".dep") || !homem.doc.body.textContent.includes("Laís")
+  );
   check("credita a autora", doc.querySelector(".dep__autora").textContent.includes("Laís"));
   check("credita o perfil", doc.body.textContent.includes("@laispavese"));
   check(
@@ -406,11 +550,23 @@ async function percorrer(sexo) {
     if (opts.length) {
       let alvo = opts.find((o) => o.getAttribute("aria-pressed") !== "true");
       const q = doc.querySelector(".cq__question")?.textContent || "";
-      if (q.includes("sexo biológico")) alvo = opts.find((o) => o.value === sexo);
+      if (q.includes("Qual seu sexo")) alvo = opts.find((o) => o.value === sexo);
       if (alvo && alvo.getAttribute("aria-pressed") !== "true") {
         alvo.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
       }
       await sleep(300);
+
+      /* Pergunta encadeada: responde cada subgrupo que apareceu, e o
+         proprio clique pode revelar o seguinte. */
+      for (let volta = 0; volta < 4; volta++) {
+        const pendentes = [...doc.querySelectorAll("[data-sub-wrap]")].filter(
+          (wrap) => !wrap.hidden && !wrap.querySelector('[aria-pressed="true"]')
+        );
+        if (!pendentes.length) break;
+        pendentes.forEach((wrap) =>
+          wrap.querySelector("[data-sub-option]").dispatchEvent(new window.MouseEvent("click", { bubbles: true }))
+        );
+      }
       if (window.location.pathname !== rota) {
         visitadas.push({ rota, campo });
         continue;
@@ -442,7 +598,7 @@ for (const sexo of ["Masculino", "Feminino"]) {
 
   /* Nomear em vez de contar: assim remover uma tela informativa nao
      quebra o teste, mas remover uma destas quebra — que e o ponto. */
-  const esperadas = ["insight_imc", "info_depoimento"];
+  const esperadas = sexo === "Feminino" ? ["insight_imc", "info_depoimento"] : ["insight_imc"];
   const faltando = esperadas.filter((f) => !vistos.includes(f));
   check(`${sexo}: passou pelas telas informativas do caminho`, faltando.length === 0, "faltou: " + faltando.join(", "));
   check(`${sexo}: sem erro de runtime`, r.erros.length === 0, r.erros.join(" | "));
