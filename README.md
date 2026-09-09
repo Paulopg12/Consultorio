@@ -15,8 +15,8 @@ desenhado do logo nem o espaçamento do original. O CSS controla só a altura
 | --- | --- |
 | `/pages/consultorio` | Seleção de protocolo |
 | `/pages/consultorio-inicio` | Como funciona a avaliação |
-| `/pages/consultorio-1` … `-38` | Passos do fluxo (o total visível varia com as condicionais) |
-| `/pages/consultorio-39` | Prontuário e checkout |
+| `/pages/consultorio-1` … `-41` | Passos do fluxo (o total visível varia com as condicionais) |
+| `/pages/consultorio-42` | Prontuário e checkout |
 
 Rota desconhecida cai na seleção de protocolo. Rota de um passo que existe
 mas está invisível (condicional que deixou de valer) recua até o passo
@@ -68,7 +68,7 @@ qual:
 | --- | --- |
 | `single`, `multiple`, `singleWithText` | opções |
 | `fields`, `number`, `textarea` | campos |
-| `photos` | envio de fotos; Continuar nasce habilitado porque é opcional |
+| `photos` | envio de arquivo; o Continuar exige todo slot sem `opcional` |
 | `info` | só informa; Continuar nasce habilitado e nada é gravado |
 | `block` | tela terminal, sem Continuar (previsto, ainda não usado) |
 
@@ -179,6 +179,35 @@ A régua é CSS puro. O domínio é fixo (`IMC_MIN` 18, `IMC_MAX` 45) e as
 posições entram como números sem unidade em `--pos` e `--at`, consumidos por
 `calc()` no `styles.css`. Mudar o domínio exige mexer no CSS.
 
+## Contraindicação encerra o questionário
+
+Três telas `kind: "block"` — terminais, sem Continuar, só com Voltar — param o
+fluxo quando a resposta é uma **contraindicação absoluta da bula** dos
+análogos de GLP-1. Seguir pedindo peso, hábito e foto de quem não pode receber
+prescrição seria coletar dado que ninguém vai usar.
+
+As condições ficam em `BLOQUEIOS`, e cada tela é um passo logo **depois** da
+pergunta que a dispara:
+
+| Tela | Dispara quando | Fica depois de |
+| --- | --- | --- |
+| `bloqueio_gravidez` | gravidez ou amamentação = Sim | `grávida_amamentando` |
+| `bloqueio_tireoide` | CMT ou MEN 2 no próprio histórico | `condicoes_restritivas` |
+| `bloqueio_familiar` | CMT ou MEN 2 em familiar de primeiro grau | `historico_familiar` |
+
+O corte é **só o da bula**, de propósito. Pancreatite, doença renal ou
+hepática, diabetes tipo 1, câncer ativo, transtorno alimentar, vômito induzido
+e cirurgia bariátrica continuam no fluxo: são caso de avaliação médica, não de
+corte automático.
+
+O prontuário também fica fechado enquanto o bloqueio vale — `bloqueioAtivo()`
+é consultado no roteador, então link direto para a rota final volta para a
+tela terminal em vez de contornar o encerramento.
+
+A tela não oferece link nenhum: não existe canal de contato no código. Quando
+existir um (WhatsApp do time, por exemplo), o lugar dele é o
+`bloqueioMarkup()`.
+
 ## Por que perguntamos
 
 Qualquer passo com a chave `why` ganha um botão "Por que perguntamos?" abaixo
@@ -202,7 +231,10 @@ O passo `fotos_corpo` (`kind: "photos"`) tem dois slots — frente e lado — ca
 um com "Usar câmera" (`capture="environment"`) e "Escolher arquivo". Aceita
 JPG e PNG até 5 MB e mostra pré-visualização, nome e tamanho.
 
-**As fotos são opcionais**: o Continuar nunca trava.
+**As duas fotos são obrigatórias**: o Continuar só destrava com as duas
+anexadas, e falta de foto vira pendência no prontuário. Quem controla isso é
+`anexosCompletos()`, sobre os slots do passo: slot com `opcional: true` (o
+exame) não trava nada, os das fotos travam.
 
 Cada card mostra uma silhueta de referência — `assets/corpo-frente.png` e
 `assets/corpo-lado.png`, PNG com fundo transparente fornecidos pela marca.
@@ -324,10 +356,14 @@ curso **não aparece mais em nenhum lugar**. Ele era o `help` da pergunta
 "Nenhuma das anteriores"), virou a tela `alerta_contraindicacao`, e a tela foi
 removida a pedido.
 
-Quem marca pancreatite, CMT, MEN 2, doença hepática, transtorno alimentar ou
-bariátrica hoje segue o questionário sem receber nenhum aviso. A resposta
-continua registrada e vai para o médico — muda a comunicação com o paciente,
-não o dado clínico.
+Quem marca pancreatite, doença hepática, transtorno alimentar ou bariátrica
+hoje segue o questionário sem receber nenhum aviso. A resposta continua
+registrada e vai para o médico — muda a comunicação com o paciente, não o dado
+clínico.
+
+CMT e MEN 2 são a exceção desde a criação das telas de bloqueio: essas duas
+não seguem mais o fluxo, encerram. Ver "Contraindicação encerra o
+questionário".
 
 Para voltar, o texto está no histórico do git (constante `riskWarning`, commit
 `fb84fcd`).

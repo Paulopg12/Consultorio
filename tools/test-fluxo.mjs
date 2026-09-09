@@ -48,7 +48,7 @@ function boot(rota, estado = null) {
   if (estado) window.localStorage.setItem("tl-consulta-emagrecimento", JSON.stringify(estado));
   /* function declarations vazam para o global no eval, mas `const steps`
      não — por isso o array é exposto explicitamente. */
-  window.eval(appJs + ";window.__api = { steps, visibleSteps, computeImc, posImc };");
+  window.eval(appJs + ";window.__api = { steps, visibleSteps, computeImc, posImc, BLOQUEIOS };");
   window.scrollTo = () => {};
   return { window, doc: window.document, erros };
 }
@@ -251,6 +251,60 @@ console.log("\n1f. exame anexado na propria pergunta");
 }
 
 /* ------------------------------------------------------------------ */
+console.log("\n1g. contraindicacao encerra o questionario");
+{
+  const marcadas = (lista) => ({ rotulo: "x", valor: lista });
+
+  /* Gravidez: a resposta "Sim" cai na tela terminal. */
+  const gravida = boot(rotaDe("bloqueio_gravidez"), { "grávida_amamentando": resposta("Sim") });
+  check("gravidez abre a tela terminal", !!gravida.doc.querySelector(".blk"));
+  check("sem Continuar", !gravida.doc.querySelector("[data-next]"));
+  check("com Voltar", !!gravida.doc.querySelector("[data-back]"));
+  check("diz o motivo", gravida.doc.querySelector(".blk__motivo").textContent.includes("Gravidez"));
+  check("nomeia os medicamentos", gravida.doc.body.textContent.includes("semaglutida"));
+  check("nao inventa canal de contato", !gravida.doc.querySelector(".blk a"));
+  check("o cabecalho marca a etapa encerrada", gravida.doc.querySelector(".cq__meta").textContent.includes("ENCERRADA") || gravida.doc.querySelector(".cq__meta").textContent.includes("encerrada"));
+  check("sem erro de runtime", gravida.erros.length === 0, gravida.erros.join(" | "));
+
+  /* Sem a resposta que bloqueia, a tela nem existe no fluxo. */
+  const naoGravida = boot(rotaDe("bloqueio_gravidez"), { "grávida_amamentando": resposta("Não! Não amamento.") });
+  check("quem respondeu que nao, nao ve a tela", !naoGravida.doc.querySelector(".blk"));
+  check("e a URL recua para um passo visivel", naoGravida.window.location.pathname !== rotaDe("bloqueio_gravidez"));
+
+  /* Tireoide e MEN 2, no proprio historico e no familiar. */
+  const cmt = boot(rotaDe("bloqueio_tireoide"), {
+    condicoes_restritivas: marcadas(["Câncer de tireoide (CMT ou carcinoma medular da tireoide)"]),
+  });
+  check("CMT proprio encerra", !!cmt.doc.querySelector(".blk"));
+  const men2 = boot(rotaDe("bloqueio_tireoide"), {
+    condicoes_restritivas: marcadas(["Síndrome de neoplasia endócrina múltipla tipo 2 (MEN 2)"]),
+  });
+  check("MEN 2 proprio encerra", !!men2.doc.querySelector(".blk"));
+  const familiar = boot(rotaDe("bloqueio_familiar"), {
+    historico_familiar: marcadas(["Síndrome MEN 2"]),
+  });
+  check("MEN 2 em familiar encerra", !!familiar.doc.querySelector(".blk"));
+
+  /* O corte e so o da bula: o resto segue para o medico avaliar. */
+  const pancreatite = boot(rotaDe("bloqueio_tireoide"), {
+    condicoes_restritivas: marcadas(["Pancreatite aguda ou crônica", "Doença hepática"]),
+  });
+  check("pancreatite e hepatica nao encerram", !pancreatite.doc.querySelector(".blk"));
+  const familiarPancreatite = boot(rotaDe("bloqueio_familiar"), {
+    historico_familiar: marcadas(["Pancreatite"]),
+  });
+  check("pancreatite em familiar nao encerra", !familiarPancreatite.doc.querySelector(".blk"));
+
+  /* Prontuario fechado por link direto enquanto o bloqueio vale. */
+  const totalSteps = boot("/pages/consultorio-1").window.__api.steps.length;
+  const rotaFim = "/pages/consultorio-" + (totalSteps + 1);
+  const tentaProntuario = boot(rotaFim, { "grávida_amamentando": resposta("Sim") });
+  check("prontuario nao abre com bloqueio ativo", !tentaProntuario.doc.querySelector(".pr"));
+  check("e a URL vai para a tela terminal", tentaProntuario.window.location.pathname === rotaDe("bloqueio_gravidez"));
+  check("mostrando a tela terminal", !!tentaProntuario.doc.querySelector(".blk"));
+}
+
+/* ------------------------------------------------------------------ */
 console.log("\n2. telas informativas");
 {
   const estado = { peso_atual: resposta("92"), peso_meta: resposta("78"), altura: resposta("178") };
@@ -353,7 +407,7 @@ console.log("\n7. envio de fotos");
     "aceita so jpg e png",
     [...doc.querySelectorAll("[data-input]")].every((i) => i.accept === "image/jpeg,image/png")
   );
-  check("Continuar liberado (foto e opcional)", doc.querySelector("[data-next]").getAttribute("aria-disabled") === "false");
+  check("Continuar travado sem as fotos", doc.querySelector("[data-next]").getAttribute("aria-disabled") === "true");
   check("status inicial", doc.querySelector(".ph__status").textContent.includes("Não enviado"));
   const silhuetas = [...doc.querySelectorAll(".ph__silhueta img")];
   check("cada card mostra a silhueta", silhuetas.length === 2);
@@ -376,6 +430,22 @@ console.log("\n7. envio de fotos");
     comFoto.doc.querySelector(".ph__card--done .ph__status").textContent.includes("frente.jpg")
   );
   check("oferece remover", !!comFoto.doc.querySelector("[data-remove]"));
+  check(
+    "uma foto so nao destrava",
+    comFoto.doc.querySelector("[data-next]").getAttribute("aria-disabled") === "true"
+  );
+
+  const anexo = (nome) => ({ rotulo: nome, valor: { nome, bytes: 524288, tipo: "image/jpeg" } });
+  const comAsDuas = boot(rotaDe("fotos_corpo"), {
+    corpo_frente: anexo("frente.jpg"),
+    corpo_lado: anexo("lado.jpg"),
+  });
+  check(
+    "as duas destravam o Continuar",
+    comAsDuas.doc.querySelector("[data-next]").getAttribute("aria-disabled") === "false"
+  );
+  check("o titulo nao diz mais 'se quiser'", !doc.querySelector(".cq__question").textContent.includes("quiser"));
+  check("e o apoio diz que sao obrigatorias", doc.querySelector(".cq__help").textContent.includes("obrigat"));
   check("sem IndexedDB nao quebra", comFoto.erros.length === 0, comFoto.erros.join(" | "));
 }
 
@@ -548,7 +618,10 @@ async function percorrer(sexo) {
 
     const opts = [...doc.querySelectorAll("[data-option]")];
     if (opts.length) {
-      let alvo = opts.find((o) => o.getAttribute("aria-pressed") !== "true");
+      /* Resposta que encerra o questionario travaria o percurso na tela
+         terminal — que e justamente o que ela deve fazer. */
+      const bloqueia = new Set(Object.values(window.__api.BLOQUEIOS).flatMap((b) => b.valores));
+      let alvo = opts.find((o) => o.getAttribute("aria-pressed") !== "true" && !bloqueia.has(o.value));
       const q = doc.querySelector(".cq__question")?.textContent || "";
       if (q.includes("Qual seu sexo")) alvo = opts.find((o) => o.value === sexo);
       if (alvo && alvo.getAttribute("aria-pressed") !== "true") {
@@ -576,6 +649,20 @@ async function percorrer(sexo) {
         input.value = "Nada a declarar";
         input.dispatchEvent(new window.Event("input", { bubbles: true }));
       }
+    }
+
+    /* As fotos do corpo agora sao obrigatorias, e o jsdom nao tem
+       IndexedDB: grava so os metadados, que e o que libera o Continuar. */
+    if (passo?.kind === "photos") {
+      const estado = JSON.parse(window.localStorage.getItem("tl-consulta-emagrecimento") || "{}");
+      for (const card of doc.querySelectorAll("[data-slot]")) {
+        const key = card.dataset.slot;
+        estado[key] = { rotulo: key, valor: { nome: key + ".jpg", bytes: 524288, tipo: "image/jpeg" } };
+      }
+      window.localStorage.setItem("tl-consulta-emagrecimento", JSON.stringify(estado));
+      window.__api.visibleSteps();
+      window.history.replaceState({}, "", rota);
+      window.eval("render()");
     }
 
     const next = doc.querySelector("[data-next]");

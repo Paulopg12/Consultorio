@@ -92,6 +92,15 @@ const steps = [
     fields: [{ key: "peso_atual", label: "Peso atual", type: "number", placeholder: "0", suffix: "kg", required: true }],
   },
   {
+    field: "bloqueio_gravidez",
+    kind: "block",
+    label: "Avaliação encerrada",
+    eyebrow: "Avaliação encerrada",
+    title: "Não podemos seguir com este tratamento agora.",
+    render: () => bloqueioMarkup(BLOQUEIOS.gravidez.motivo),
+    showIf: { when: () => bloqueado("gravidez") },
+  },
+  {
     field: "meta_perda",
     label: "Meta de perda de peso",
     kind: "single",
@@ -210,6 +219,15 @@ const steps = [
     exclusive: "Nenhuma das anteriores",
   },
   {
+    field: "bloqueio_tireoide",
+    kind: "block",
+    label: "Avaliação encerrada",
+    eyebrow: "Avaliação encerrada",
+    title: "Este tratamento não é indicado para você.",
+    render: () => bloqueioMarkup(BLOQUEIOS.tireoide.motivo),
+    showIf: { when: () => bloqueado("tireoide") },
+  },
+  {
     field: "diagnosticos_metabolicos",
     label: "Diagnósticos metabólicos",
     kind: "multiple",
@@ -258,6 +276,15 @@ const steps = [
     title: "Algum familiar de primeiro grau já foi diagnosticado com:",
     options: ["Carcinoma medular da tireoide (CMT)", "Síndrome MEN 2", "Pancreatite", "Nenhuma das anteriores"],
     exclusive: "Nenhuma das anteriores",
+  },
+  {
+    field: "bloqueio_familiar",
+    kind: "block",
+    label: "Avaliação encerrada",
+    eyebrow: "Avaliação encerrada",
+    title: "Este tratamento não é indicado para você.",
+    render: () => bloqueioMarkup(BLOQUEIOS.familiar.motivo),
+    showIf: { when: () => bloqueado("familiar") },
   },
   {
     field: "toma_medicamento",
@@ -495,16 +522,17 @@ const steps = [
     slotsReveal: ["Sim"],
     slotsHint: "JPG, PNG ou PDF · até 5 MB",
     slots: [
-      { key: "exame_arquivo", label: "Exame", tipos: ["image/jpeg", "image/png", "application/pdf"] },
+      /* `opcional`: quem respondeu "Sim" pode nao ter o arquivo na mao agora,
+         e isso nao pode travar o Continuar nem virar pendencia no prontuario. */
+      { key: "exame_arquivo", label: "Exame", opcional: true, tipos: ["image/jpeg", "image/png", "application/pdf"] },
     ],
   },
   {
     field: "fotos_corpo",
     kind: "photos",
     label: "Fotos do corpo",
-    title: "Se quiser, envie duas fotos do seu corpo.",
-    help: "É opcional. A foto ajuda o médico a avaliar composição corporal e a comparar a sua evolução durante o tratamento. Use roupa leve, boa luz e o corpo inteiro no quadro.",
-    optional: true,
+    title: "Envie duas fotos do seu corpo.",
+    help: "As duas são obrigatórias: é com elas que o médico avalia composição corporal e compara a sua evolução durante o tratamento. Use roupa leve, boa luz e o corpo inteiro no quadro.",
   },
   {
     field: "cpf",
@@ -530,6 +558,65 @@ steps.forEach((step) => {
   if (seenFields.has(step.field)) console.error("field duplicado em steps:", step.field);
   seenFields.add(step.field);
 });
+
+/* --------------------------- bloqueios --------------------------- */
+
+/* Contraindicações absolutas dos análogos de GLP-1, direto da bula: com
+   qualquer uma delas não existe prescrição possível, então o questionário
+   para na hora em vez de seguir pedindo peso, hábito e foto que ninguém vai
+   usar. A tela é `kind: "block"`: terminal, sem Continuar, com Voltar para
+   quem errou o clique.
+
+   Aqui entram só as contraindicações da bula. Pancreatite, doença
+   renal/hepática, diabetes tipo 1, câncer ativo e transtorno alimentar
+   seguem no fluxo de propósito — são caso de avaliação médica, não de
+   corte automático. */
+const BLOQUEIOS = {
+  gravidez: {
+    field: "grávida_amamentando",
+    valores: ["Sim"],
+    motivo: "Gravidez ou amamentação",
+  },
+  tireoide: {
+    field: "condicoes_restritivas",
+    valores: [
+      "Câncer de tireoide (CMT ou carcinoma medular da tireoide)",
+      "Síndrome de neoplasia endócrina múltipla tipo 2 (MEN 2)",
+    ],
+    motivo: "Carcinoma medular da tireoide ou MEN 2 no seu histórico",
+  },
+  familiar: {
+    field: "historico_familiar",
+    valores: ["Carcinoma medular da tireoide (CMT)", "Síndrome MEN 2"],
+    motivo: "Carcinoma medular da tireoide ou MEN 2 em familiar de primeiro grau",
+  },
+};
+
+function bloqueado(nome) {
+  const { field, valores } = BLOQUEIOS[nome];
+  const resposta = getValue(field);
+  const marcadas = Array.isArray(resposta) ? resposta : resposta ? [resposta] : [];
+  return valores.some((valor) => marcadas.includes(valor));
+}
+
+/* Usado também pelo roteador: com bloqueio ativo, o prontuário nao pode ser
+   alcancado por link direto. */
+function bloqueioAtivo() {
+  return steps.find((step) => step.kind === "block" && matchesCondition(step.showIf));
+}
+
+/* Mensagem única: o motivo muda, o encaminhamento não. Sem canal de contato
+   inventado — quando existir um, entra aqui. */
+function bloqueioMarkup(motivo) {
+  return `
+    <div class="blk">
+      <p class="blk__motivo">${icon("alert")}<span>${motivo}</span></p>
+      <p class="blk__texto">Os medicamentos deste protocolo — análogos de GLP-1, como a semaglutida e a tirzepatida — são contraindicados nesse caso. Não é questao de dose nem de ajuste: nenhum médico pode prescrever por aqui.</p>
+      <p class="blk__texto">O caminho é uma avaliação presencial. Um médico pode investigar o seu caso e indicar alternativas seguras para você.</p>
+      <p class="blk__nota">Se marcou por engano, use o Voltar e corrija a resposta. O que você respondeu fica guardado só neste navegador.</p>
+    </div>
+  `;
+}
 
 /* ---------------------------- etapas ---------------------------- */
 
@@ -1280,6 +1367,13 @@ function photoCard(slot) {
   `;
 }
 
+/* Passo de anexo só libera o Continuar quando todo slot obrigatório tem
+   arquivo. O `optional` do passo ainda vale como atalho. */
+function anexosCompletos(step) {
+  if (step.optional) return true;
+  return slotsDoPasso(step).every((slot) => slot.opcional || photoMeta(slot.key));
+}
+
 function photosMarkup(step) {
   return `
     <div class="ph">
@@ -1302,8 +1396,9 @@ function slotsMarkup(step) {
 }
 
 function wirePhotosStep(step, goNext, setEnabled) {
-  /* Fotos são opcionais: o Continuar nunca fica travado. */
-  setEnabled(true);
+  /* Enviar arquivo faz o passo re-renderizar (navigate), então basta medir
+     uma vez na montagem. */
+  setEnabled(anexosCompletos(step));
 
 
   const cards = [...document.querySelectorAll("[data-slot]")];
@@ -1550,8 +1645,12 @@ function campoEsperado(key) {
   const dono = donoDoCampo(key);
   if (!dono) return false;
   if (!matchesCondition(dono.showIf)) return false;
-  if (dono.optional || dono.kind === "photos" || isInterstitial(dono)) return false;
+  if (dono.optional || isInterstitial(dono)) return false;
   if (dono.field === key) return true;
+
+  /* Slot de anexo: as fotos do corpo são cobradas, o exame não. */
+  const slot = slotsDoPasso(dono.kind === "photos" ? dono : { slots: dono.slots || [] }).find((item) => item.key === key);
+  if (slot) return !slot.opcional;
 
   const grupo = (dono.subgrupos || []).find((item) => item.key === key);
   if (grupo) return valoresDeOrigem(grupo.reveal?.from || dono.field).some((valor) => (grupo.reveal?.values || []).includes(valor));
@@ -1723,7 +1822,7 @@ function renderStep(index) {
   /* Tela informativa sem eyebrow nao mostra rotulo nenhum -- nem o
      separador, que ficaria solto ao lado do nome do protocolo. */
   const rotuloMeta = interstitial ? step.eyebrow || "" : questionNumber + "/" + questionTotal;
-  const startsEnabled = interstitial || step.kind === "photos";
+  const startsEnabled = interstitial || (step.kind === "photos" && anexosCompletos(step));
   const revisao = emRevisao();
 
   /* Um segmento por etapa, com peso proporcional ao número de passos: a
@@ -1765,9 +1864,13 @@ function renderStep(index) {
 
       <footer class="cq__foot">
         <div class="cq__foot-inner">
-          <button class="btn" type="button" aria-disabled="${startsEnabled ? "false" : "true"}" data-next>${
-            revisao ? "Salvar e voltar" : step.cta || "Continuar"
-          } ${icon("arrow")}</button>
+          ${
+            step.kind === "block"
+              ? ""
+              : `<button class="btn" type="button" aria-disabled="${startsEnabled ? "false" : "true"}" data-next>${
+                  revisao ? "Salvar e voltar" : step.cta || "Continuar"
+                } ${icon("arrow")}</button>`
+          }
           ${showBack ? `<button class="cq__back" type="button" data-back>Voltar</button>` : ""}
         </div>
       </footer>
@@ -2081,6 +2184,14 @@ function render() {
     document.title = `${getProtocol().nome} — como funciona`;
     renderIntro();
   } else if (path === donePath()) {
+    /* Bloqueio ativo fecha o prontuário também por link direto: a tela
+       terminal não pode ser contornada pela URL. */
+    const bloqueio = bloqueioAtivo();
+    if (bloqueio) {
+      history.replaceState({}, "", bloqueio.path);
+      render();
+      return;
+    }
     document.title = "Avaliação enviada — Consultório";
     renderDone();
   } else {
