@@ -346,6 +346,81 @@ console.log("\n1g. contraindicacao encerra o questionario");
 }
 
 /* ------------------------------------------------------------------ */
+console.log("\n1h. nenhuma pergunta repetida");
+{
+  const { window } = boot("/pages/consultorio-1");
+  const passos = window.__api.steps;
+  const perguntas = passos.filter((s) => s.kind !== "block" && s.kind !== "info");
+
+  /* Titulo igual em duas perguntas parece bug do site: a pessoa jura que ja
+     respondeu aquilo. As telas terminais compartilham titulo de proposito, e
+     nunca aparecem juntas. */
+  const porTitulo = new Map();
+  for (const passo of perguntas) {
+    const titulo = typeof passo.title === "function" ? passo.title() : passo.title;
+    if (!titulo) continue;
+    porTitulo.set(titulo, [...(porTitulo.get(titulo) || []), passo.field]);
+  }
+  const titulosRepetidos = [...porTitulo.entries()].filter(([, campos]) => campos.length > 1);
+  check(
+    "nenhum titulo repetido entre perguntas",
+    titulosRepetidos.length === 0,
+    titulosRepetidos.map(([t, c]) => `${c.join(" + ")}: ${t}`).join(" | ")
+  );
+
+  /* Mesma opcao em duas listas = mesmo fato perguntado duas vezes. */
+  const GENERICAS = new Set([
+    "Sim",
+    "Não",
+    "Nenhuma das anteriores",
+    "Não tenho alergia",
+    "Outra alergia (medicamento ou alimento)",
+  ]);
+  const porOpcao = new Map();
+  for (const passo of perguntas) {
+    const opcoes = typeof passo.options === "function" ? [] : passo.options || [];
+    for (const opcao of opcoes) {
+      const valor = typeof opcao === "string" ? opcao : opcao.value;
+      if (GENERICAS.has(valor)) continue;
+      porOpcao.set(valor, new Set([...(porOpcao.get(valor) || []), passo.field]));
+    }
+  }
+  const opcoesRepetidas = [...porOpcao.entries()].filter(([, campos]) => campos.size > 1);
+  check(
+    "nenhuma opcao em duas perguntas",
+    opcoesRepetidas.length === 0,
+    opcoesRepetidas.map(([o, c]) => `${[...c].join(" + ")}: ${o}`).join(" | ")
+  );
+
+  /* As duas perguntas que foram absorvidas por outras. */
+  check("diagnosticos_metabolicos foi absorvido", !passos.some((s) => s.field === "diagnosticos_metabolicos"));
+  check("medicamento_suplemento_30d foi absorvido", !passos.some((s) => s.field === "medicamento_suplemento_30d"));
+  check(
+    "o diabetes agora mora nas condicoes restritivas",
+    (passos.find((s) => s.field === "condicoes_restritivas")?.options || []).includes("Diabetes tipo 1")
+  );
+  check(
+    "e as duas perguntas de diabetes seguem essa resposta",
+    passos.filter((s) => s.showIf?.field === "condicoes_restritivas").length === 2
+  );
+  check(
+    "transtorno alimentar so na pergunta propria",
+    !(passos.find((s) => s.field === "condicoes_restritivas")?.options || []).some((o) => o.includes("Transtorno alimentar"))
+  );
+  check(
+    "a pergunta de medicamento cobre os 30 dias",
+    (passos.find((s) => s.field === "toma_medicamento")?.help || "").includes("30 dias")
+  );
+
+  /* Nenhuma lista pode crescer sem limite: a tela do questionario nao rola. */
+  const maior = perguntas.reduce(
+    (max, s) => Math.max(max, (typeof s.options === "function" ? [] : s.options || []).length),
+    0
+  );
+  check("a maior lista de opcoes tem no maximo 11 itens", maior <= 11, "veio " + maior);
+}
+
+/* ------------------------------------------------------------------ */
 console.log("\n2. telas informativas");
 {
   const estado = { peso_atual: resposta("92"), peso_meta: resposta("78"), altura: resposta("178") };

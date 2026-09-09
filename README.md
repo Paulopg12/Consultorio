@@ -15,8 +15,8 @@ desenhado do logo nem o espaçamento do original. O CSS controla só a altura
 | --- | --- |
 | `/pages/consultorio` | Seleção de protocolo |
 | `/pages/consultorio-inicio` | Como funciona a avaliação |
-| `/pages/consultorio-1` … `-43` | Passos do fluxo (o total visível varia com as condicionais) |
-| `/pages/consultorio-44` | Prontuário e checkout |
+| `/pages/consultorio-1` … `-41` | Passos do fluxo (o total visível varia com as condicionais) |
+| `/pages/consultorio-42` | Prontuário e checkout |
 
 Rota desconhecida cai na seleção de protocolo. Rota de um passo que existe
 mas está invisível (condicional que deixou de valer) recua até o passo
@@ -226,6 +226,39 @@ tela terminal em vez de contornar o encerramento.
 A tela não oferece link nenhum: não existe canal de contato no código. Quando
 existir um (WhatsApp do time, por exemplo), o lugar dele é o
 `bloqueioMarkup()`.
+
+## Nenhuma pergunta repetida
+
+O questionário tinha **duas perguntas com o título idêntico** ("Você já foi
+diagnosticado com alguma das condições abaixo?") e a mesma condição pedida em
+listas diferentes — diabetes tipo 2 em duas, fígado em três, pressão alta em
+duas. Quem responde jura que já respondeu aquilo, e com razão.
+
+As quatro perguntas de condições viraram três, cada uma com um recorte e sem
+nenhuma opção em comum:
+
+| Passo | Recorte | Itens |
+| --- | --- | --- |
+| `condicoes_restritivas` | histórico que muda ou impede a indicação (renal, hepática, pancreatite, CMT, MEN 2, câncer em tratamento, diabetes 1 e 2, doença inflamatória intestinal, bariátrica) | 11 |
+| `condicoes_medicas` | o que interessa pela interação (tireoide, hormonal, coração, estômago, convulsões, glaucoma, fibrose cística) | 8 |
+| `condicoes_atuais` | comorbidades que costumam melhorar com a perda de peso | 10 |
+
+Ficaram **duas perguntas a menos** no fluxo: `diagnosticos_metabolicos` foi
+absorvida pela primeira (e as duas condicionais de diabetes passaram a olhar
+`condicoes_restritivas`), e `medicamento_suplemento_30d` foi absorvida por
+`toma_medicamento`, que agora pergunta "medicamento **ou suplemento**
+regularmente" com "os últimos 30 dias" no texto de apoio. "Transtorno
+alimentar" saiu da lista de condições porque já tem pergunta própria.
+
+**Não são repetição, e ficam como estão**: CMT/MEN 2 e pancreatite aparecem em
+`condicoes_restritivas` e em `historico_familiar` porque a bula pede o
+histórico próprio **e** o do familiar de primeiro grau; `medicamentos_diabetes`
+repete o assunto de `toma_medicamento` mas só aparece para quem marcou
+diabetes, e pergunta especificamente por insulina.
+
+O teste `1h` do `test-fluxo.mjs` guarda isso: falha se duas perguntas voltarem
+a ter o mesmo título, se a mesma opção aparecer em duas listas, ou se alguma
+lista passar de 11 itens — acima disso a tela rola no celular.
 
 ## Por que perguntamos
 
