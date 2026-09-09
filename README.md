@@ -50,18 +50,29 @@ processo completo, acompanhamento incluído — o texto que havia ali antes,
 sobre análogos de GLP-1, é que foi removido a pedido.
 
 A tela "como funciona" lista **cinco** etapas: avaliação, análise médica,
-protocolo liberado, acompanhamento semanal com a nutricionista e
-acompanhamento médico até o fim do protocolo. As duas últimas trazem o rótulo
-de recorrência ("TODA SEMANA", "DURANTE O TRATAMENTO") no lugar de prazo.
+protocolo liberado, acompanhamento com a nutricionista e acompanhamento médico
+contínuo. As duas últimas trazem o rótulo de recorrência ("TODA SEMANA",
+"DURANTE O TRATAMENTO") no lugar de prazo.
 
 ### Como a lista de etapas é desenhada
 
 Sem caixa: nem borda, nem fundo, nem sombra. Cinco cards com moldura brigavam
-entre si e com o botão; o que organiza a lista agora é o **trilho vertical de
-1px** ligando os ícones, o espaço entre os itens e a hierarquia de tipo. O
-ícone vive num quadrado arredondado de 44px (o círculo com borda lia como
-marcador de lista), e o rótulo virou só o número — "ETAPA 01" cinco vezes era
-mais rótulo do que informação.
+entre si e com o botão; o que organiza a lista agora é o espaço e a hierarquia
+de tipo. O ícone vive num quadrado arredondado de 44px (o círculo com borda
+lia como marcador de lista), e o rótulo virou só o número — "ETAPA 01" cinco
+vezes era mais rótulo do que informação.
+
+**Duas colunas, 2 + 2 + 1**, com a quinta etapa atravessando a largura toda
+(`grid-column: 1 / -1`). Em coluna única a seção ficava longa demais no
+desktop: cinco etapas empilhadas passavam da dobra e empurravam o botão para
+fora da tela. Como a coluna estreita cobra do título, os dois últimos
+encurtaram ("Acompanhamento com a nutricionista", "Acompanhamento médico
+contínuo") — a recorrência já está no selo abaixo — e o `h3` ganhou
+`text-wrap: balance`.
+
+No **celular** volta a ser uma coluna, e aí sim entra o **trilho vertical de
+1px** ligando os ícones: em duas colunas ele ligaria etapas que não se seguem
+na vertical, por isso a regra dele vive dentro do `@media (max-width: 620px)`.
 
 A entrada é por **scroll**, não por carga: `revelarNoScroll()` usa
 IntersectionObserver para revelar cada etapa quando ela aparece, porque no

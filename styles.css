@@ -402,15 +402,22 @@ button, input, textarea, select { font: inherit; }
   line-height: 1.62;
 }
 
-/* Etapas numa lista aberta, sem caixa: a moldura e o trilho vertical que
-   liga os icones. Cinco cards com borda, fundo e sombra brigavam entre si e
-   com o botao; sem eles sobra o que interessa -- numero, titulo e frase. */
+/* Etapas sem caixa: nem borda, nem fundo, nem sombra. Cinco cards com
+   moldura brigavam entre si e com o botao; sem eles sobra o que interessa --
+   numero, titulo e frase.
+
+   Em duas colunas (2 + 2 + 1, a ultima atravessando) porque em coluna unica
+   a secao ficava longa demais no desktop: cinco etapas empilhadas passavam da
+   dobra e empurravam o botao para fora da tela. No celular volta a ser uma
+   coluna, com o trilho ligando os icones. */
 .ci__track {
   margin: 44px 0 0;
   padding: 0;
   list-style: none;
   display: grid;
-  gap: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 34px 40px;
   counter-reset: etapa;
 }
 
@@ -418,11 +425,11 @@ button, input, textarea, select { font: inherit; }
   display: grid;
   grid-template-columns: 44px minmax(0, 1fr);
   align-items: start;
-  gap: 20px;
-  padding: 0 0 30px;
+  gap: 18px;
 }
 
-.ci__step:last-child { padding-bottom: 0; }
+/* Sozinha na ultima linha, ocupa a largura toda. */
+.ci__step:last-child { grid-column: 1 / -1; }
 
 /* Quadrado arredondado, e nao circulo: o circulo com borda de 1px lia como
    marcador de lista, o tile le como icone. */
@@ -464,10 +471,12 @@ button, input, textarea, select { font: inherit; }
   font-family: var(--font-display);
   margin: 0;
   color: var(--ink);
-  font-size: 18.5px;
+  font-size: 17.5px;
   line-height: 1.26;
   font-weight: 700;
   letter-spacing: -0.018em;
+  /* Em coluna estreita, evita a ultima linha com uma palavra so. */
+  text-wrap: balance;
 }
 
 .ci__step p {
@@ -878,19 +887,8 @@ button, input, textarea, select { font: inherit; }
     0 10px 20px -14px rgba(22, 17, 15, 0.2);
 }
 
-/* Trilho fino ligando os tiles: left casa com o centro do tile de 44px. */
-.ci__step:not(:last-child)::after {
-  content: "";
-  position: absolute;
-  left: 22px;
-  top: 56px;
-  bottom: 8px;
-  width: 1px;
-  background: linear-gradient(to bottom, rgba(140, 156, 129, 0.45), rgba(22, 17, 15, 0.07));
-  transform-origin: top;
-  animation: ci-linha 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  animation-delay: calc(320ms + var(--i, 0) * 90ms);
-}
+/* O trilho vertical existe apenas na coluna unica do celular: em duas
+   colunas ele ligaria etapas que nao se seguem na vertical. */
 
 /* Entrada por scroll, quando o JS assume (ver revelarNoScroll): a animacao
    do CSS sai de cena e quem manda e a transicao. */
@@ -1780,10 +1778,23 @@ button, input, textarea, select { font: inherit; }
 
   .ci__bar-inner { height: 56px; padding: 0 20px; }
   .ci__main { padding: 32px 20px 44px; }
+  .ci__track { margin-top: 34px; grid-template-columns: minmax(0, 1fr); gap: 0; }
   .ci__step { grid-template-columns: 40px minmax(0, 1fr); gap: 16px; padding: 0 0 26px; }
-  .ci__step:not(:last-child)::after { left: 20px; top: 52px; }
+  .ci__step:last-child { grid-column: auto; padding-bottom: 0; }
   .ci__step h3 { font-size: 17px; }
-  .ci__track { margin-top: 34px; }
+
+  .ci__step:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    left: 20px;
+    top: 52px;
+    bottom: 6px;
+    width: 1px;
+    background: linear-gradient(to bottom, rgba(140, 156, 129, 0.45), rgba(22, 17, 15, 0.07));
+    transform-origin: top;
+    animation: ci-linha 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(320ms + var(--i, 0) * 90ms);
+  }
   .dep { gap: 12px; margin-top: 12px; }
   .dep__fala p:first-child { font-size: 14.5px; }
   .dep__fala p { font-size: 12.5px; }
