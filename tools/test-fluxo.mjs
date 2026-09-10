@@ -48,7 +48,7 @@ function boot(rota, estado = null) {
   if (estado) window.localStorage.setItem("tl-consulta-emagrecimento", JSON.stringify(estado));
   /* function declarations vazam para o global no eval, mas `const steps`
      não — por isso o array é exposto explicitamente. */
-  window.eval(appJs + ";window.__api = { steps, visibleSteps, computeImc, posImc, BLOQUEIOS };");
+  window.eval(appJs + ";window.__api = { steps, visibleSteps, computeImc, posImc, BLOQUEIOS, DEPOIMENTOS };");
   window.scrollTo = () => {};
   return { window, doc: window.document, erros };
 }
@@ -694,6 +694,40 @@ console.log("\n9. depoimento dentro do questionario");
     doc.querySelector(".dep__nota").textContent.includes("Resultado individual")
   );
   check("sem erro de runtime", erros.length === 0, erros.join(" | "));
+}
+
+/* ------------------------------------------------------------------ */
+console.log("\n9b. depoimento troca conforme o sexo");
+{
+  const medidas = { peso_atual: resposta("120"), peso_meta: resposta("90"), altura: resposta("178") };
+
+  const homem = boot(rotaDe("info_depoimento"), { ...medidas, sexo_biologico: resposta("Masculino") });
+  const passoH = homem.window.__api.visibleSteps().find((s) => s.path === homem.window.location.pathname);
+  check("homem: a tela abre", passoH && passoH.field === "info_depoimento", passoH && passoH.field);
+  check("homem: e o Danilo", homem.doc.querySelector(".dep__autora").textContent.includes("Danilo"));
+  check("homem: titulo fala dele", (homem.doc.querySelector(".cq__question")?.textContent || "").includes("Danilo"));
+  check("homem: fala os 30 kg", homem.doc.querySelector(".dep__fala").textContent.includes("30 kg"));
+  const fotosH = [...homem.doc.querySelectorAll(".dep__foto img")].map((i) => i.getAttribute("src"));
+  check("homem: usa as fotos dele", fotosH.every((s) => s.includes("depoimento-h-")), fotosH.join(" | "));
+  check("homem: sem arroba nao sobra span vazio", !homem.doc.querySelector(".dep__autora span"));
+  check("homem: sem erro de runtime", homem.erros.length === 0, homem.erros.join(" | "));
+
+  const mulher = boot(rotaDe("info_depoimento"), { ...medidas, sexo_biologico: resposta("Feminino") });
+  check("mulher: e a Lais", mulher.doc.querySelector(".dep__autora").textContent.includes("Laís"));
+  check("mulher: fala os 43 kg", mulher.doc.querySelector(".dep__fala").textContent.includes("43 kg"));
+  const fotosM = [...mulher.doc.querySelectorAll(".dep__foto img")].map((i) => i.getAttribute("src"));
+  check("mulher: usa as fotos dela", fotosM.every((s) => !s.includes("depoimento-h-")), fotosM.join(" | "));
+  check("mulher: mantem o arroba", (mulher.doc.querySelector(".dep__autora span")?.textContent || "").includes("@"));
+
+  check("os dois slots estao prontos", ["feminino", "masculino"].every((k) => homem.window.__api.DEPOIMENTOS[k].pronto));
+  check(
+    "cada um com par de fotos proprio",
+    new Set([...fotosH, ...fotosM]).size === 4,
+    [...fotosH, ...fotosM].join(" | ")
+  );
+  check("as fotos dele tem alt", [...homem.doc.querySelectorAll(".dep__foto img")].every((i) => (i.getAttribute("alt") || "").length > 12));
+  check("a ressalva de resultado individual vale para os dois",
+    [homem, mulher].every((r) => r.doc.querySelector(".dep__nota").textContent.includes("Resultado individual")));
 }
 
 /* ------------------------------------------------------------------ */

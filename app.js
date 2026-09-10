@@ -868,16 +868,24 @@ const DEPOIMENTOS = {
       "Você não precisa chegar ao peso ideal para valorizar o quanto já andou.",
     ],
   },
-  /* TODO: fotos e fala de um paciente homem. Ao receber o material, salve as
-     duas fotos em /assets, preencha os campos e troque `pronto` para true. */
   masculino: {
-    pronto: false,
-    titulo: "",
-    nome: "",
+    pronto: true,
+    titulo: "O Danilo também estava com IMC alto, e conseguiu emagrecer.",
+    nome: "Danilo",
     arroba: "",
-    antes: { arquivo: "", alt: "" },
-    depois: { arquivo: "", alt: "" },
-    paragrafos: [],
+    largura: 544,
+    altura: 680,
+    antes: { arquivo: "depoimento-h-antes.jpg", alt: "Danilo antes do tratamento" },
+    depois: { arquivo: "depoimento-h-depois.jpg", alt: "Danilo hoje, depois do tratamento" },
+    /* ATENÇÃO: fala de rascunho, escrita por nós — o Danilo não disse isso.
+       As fotos e os 30 kg são reais; o texto é só um ponto de partida. Valide
+       com ele antes de deixar no ar: depoimento inventado com foto de pessoa
+       real é testemunho falso, e o CDC (art. 37) trata isso como publicidade
+       enganosa. */
+    paragrafos: [
+      "Perdi 30 kg. O que mais mudou não foi o número na balança — foi parar de sentir o corpo pesado no fim do dia.",
+      "Eu já tinha tentado por conta antes. A diferença foi ter alguém acompanhando e ajustando o caminho comigo.",
+    ],
   },
 };
 
@@ -887,16 +895,20 @@ function depoimentoDoSexo() {
 
 function depoimento(dados) {
   const { nome, arroba, antes, depois, paragrafos } = dados;
+  /* Cada depoimento pode ter as próprias dimensões; a proporção é que
+     precisa ser 4:5, e o CSS cuida do resto. */
+  const largura = dados.largura || 680;
+  const altura = dados.altura || 850;
 
   return `
     <section class="dep">
       <div class="dep__fotos">
         <figure class="dep__foto">
-          <img src="/assets/${antes.arquivo}" alt="${antes.alt}" width="680" height="850" loading="lazy" decoding="async">
+          <img src="/assets/${antes.arquivo}" alt="${antes.alt}" width="${largura}" height="${altura}" loading="lazy" decoding="async">
           <figcaption>Antes</figcaption>
         </figure>
         <figure class="dep__foto">
-          <img src="/assets/${depois.arquivo}" alt="${depois.alt}" width="680" height="850" loading="lazy" decoding="async">
+          <img src="/assets/${depois.arquivo}" alt="${depois.alt}" width="${largura}" height="${altura}" loading="lazy" decoding="async">
           <figcaption>Depois</figcaption>
         </figure>
       </div>
@@ -905,7 +917,7 @@ function depoimento(dados) {
         ${paragrafos.map((p) => `<p>${p}</p>`).join("")}
       </blockquote>
 
-      <p class="dep__autora"><b>${nome}</b> <span>${arroba}</span></p>
+      <p class="dep__autora"><b>${nome}</b>${arroba ? ` <span>${arroba}</span>` : ""}</p>
 
       <p class="dep__nota">Resultado individual. A resposta ao tratamento varia de pessoa para pessoa e depende de avaliação médica, alimentação e atividade física.</p>
     </section>

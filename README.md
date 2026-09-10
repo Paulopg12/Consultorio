@@ -359,10 +359,24 @@ card avisa e o fluxo continua.
 
 O depoimento é **recortado por sexo** (`DEPOIMENTOS`, com `feminino` e
 `masculino`). Cada entrada tem `pronto`: enquanto o material de um sexo não
-chega, a tela sai do fluxo em vez de mostrar a pessoa do outro. Hoje só o
-feminino está pronto — o masculino espera fotos e fala de um paciente homem
-(salve as duas fotos em `/assets`, preencha os campos e troque `pronto` para
-`true`). O título da tela vem do próprio depoimento.
+chega, a tela sai do fluxo em vez de mostrar a pessoa do outro. Os dois
+estão preenchidos — Laís (-43 kg) e Danilo (-30 kg). O título da tela vem do
+próprio depoimento, e `arroba` é opcional: sem ele, o `<span>` nem entra.
+Cada entrada pode declarar `largura` e `altura` (a proporção precisa ser 4:5).
+
+> **A fala do Danilo é rascunho nosso, não é dele.** As fotos e os 30 kg são
+> reais; o texto foi escrito por nós como ponto de partida, porque não havia
+> depoimento gravado. **Valide com ele antes de deixar no ar** — texto
+> inventado ao lado da foto de uma pessoa real é lido como fala dela, e o
+> CDC (art. 37) trata testemunho falso como publicidade enganosa. O aviso
+> também está no comentário do slot, no `app.js`.
+>
+> Se preferir não usar fala inventada, a saída é apresentar só o dado —
+> “Danilo, -30 kg” com as duas fotos — sem aspas e sem citação.
+
+As fotos dele vieram em AVIF, 798×832 e 323×443, e foram recortadas para 4:5
+(544×680). A do depois é pequena na origem, então passou por um leve upscale;
+se aparecer uma versão maior, vale trocar.
 
 O passo `info_depoimento` traz um depoimento com antes e depois, montado a
 partir da constante `DEPOIMENTO` no `app.js`: fotos em
